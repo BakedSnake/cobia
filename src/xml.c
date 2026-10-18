@@ -1,3 +1,4 @@
+#include <libxml2/libxml/xmlwriter.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -27,6 +28,48 @@ char *xpath_get(xmlDocPtr doc, const char *path)
     xmlXPathFreeObject(obj);
     xmlXPathFreeContext(ctx);
     return result;
+}
+
+const char* create_network_xml(xmlBufferPtr buf)
+{
+    xmlTextWriterPtr w = xmlNewTextWriterMemory(buf, 0);
+    if (!w) {
+        fprintf(stderr, "Failed to create writer\n");
+        return NULL;
+    }
+    xmlTextWriterStartDocument(w, NULL, "UTF-8", NULL);
+        xmlTextWriterStartElement(w, BAD_CAST "network");
+
+            xmlTextWriterStartElement(w, BAD_CAST "name");
+                xmlTextWriterWriteString(w, BAD_CAST NETWORK.name);
+            xmlTextWriterEndElement(w);
+
+            xmlTextWriterStartElement(w, BAD_CAST "forward");
+                xmlTextWriterWriteAttribute(w, BAD_CAST "mode", BAD_CAST NETWORK.forward);
+            xmlTextWriterEndElement(w);
+
+            xmlTextWriterStartElement(w, BAD_CAST "bridge");
+                xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST NETWORK.bridge);
+            xmlTextWriterEndElement(w);
+
+            xmlTextWriterStartElement(w, BAD_CAST "ip");
+                xmlTextWriterWriteAttribute(w, BAD_CAST "address", BAD_CAST NETWORK.ip);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "netmask", BAD_CAST NETWORK.netmask);
+
+                xmlTextWriterStartElement(w, BAD_CAST "dhcp");
+                    xmlTextWriterStartElement(w, BAD_CAST "range");
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "start", BAD_CAST NETWORK.range_start);
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "end", BAD_CAST NETWORK.range_end);
+                    xmlTextWriterEndElement(w);
+                xmlTextWriterEndElement(w);
+
+            xmlTextWriterEndElement(w);
+
+        xmlTextWriterEndElement(w); // end network
+    xmlTextWriterEndDocument(w);
+
+    const char* xml = (char *)xmlBufferContent(buf);
+    return xml;
 }
 
 const char* create_domain_xml(xmlBufferPtr buf)

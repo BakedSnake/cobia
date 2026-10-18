@@ -4,6 +4,8 @@
 
 const char* create_domain_xml(xmlBufferPtr buf);
 
+const char* create_network_xml(xmlBufferPtr buf);
+
 char *xpath_get(xmlDocPtr doc, const char *path);
 
 void get_nvram_path(const char* name);

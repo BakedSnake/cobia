@@ -32,6 +32,18 @@ typedef struct {
     char **dest;
 } key_map_t;
 
+typedef struct Network {
+    char *name;
+    char *forward;
+    char *bridge;
+    char *ip;
+    char *netmask;
+    char *range_start;
+    char *range_end;
+} Network;
+
+extern Network NETWORK;
+
 typedef struct Feature {
     char *enabled;
     char *name;
@@ -146,6 +158,7 @@ typedef struct Channel {
 } Channel;
 
 extern key_map_t settings[20];
+extern key_map_t net_settings[7];
 
 static struct option options[] = {
   {"help",              no_argument,            0, 'h'},
@@ -158,6 +171,7 @@ static struct option options[] = {
   {"info",              required_argument,      0, 'i'},
   {"xml",               required_argument,      0, 'x'},
   {"netinfo",           required_argument,      0, 'n'},
+  {"netcreate",         required_argument,      0, 'N'},
   {0,                   0,                      0,  0 }
 };
 
