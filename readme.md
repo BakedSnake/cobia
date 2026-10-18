@@ -42,13 +42,62 @@ Default values for vm install.
 Note: These options assume you have a virtual network named default, and that it is enabled.
 
 #### Usage
+
+**Bootstrap domain configuration:**
 ```bash
-$ cobia-cfg --interactive --create
-$ cobia-cfg --os=1 --create             # Create Debian vm with all default values
-$ cobia-cfg --os=1 --apply              # Create Debian domain yaml file
-$ cobia -c /path/to/domain/file.yml     # Create vm from domain yaml file
-$ cobia -l domains                      # List domains
-$ cobia -l networks                     # List networks
-$ cobia -i <vm name>                    # Show vm info
+$ cobia-cfg --interactive --apply
+$ cobia-cfg --os=2 --os-name=debian13 --apply # Create Debian domain yaml file
+```
+
+```yaml
+---
+domain:
+  boot: uefi
+  cpu: '2'
+  devices:
+    cd: /debian13-1792325918/cidata.iso
+    disk:
+      size: '40'
+      source: /debian13-1792325918/debian13-1792325918.qcow2
+    graphics: spice
+    net: default
+    video:
+      driver: qemu
+      model: virtio
+  model: virtio
+  name: debian13-1792325918
+  os:
+    arch: x86_64
+    bootdev: hd
+    efi: 'false'
+    features:
+      secure_boot: no
+    machine: q35
+  ram: '2096'
+  ssh_key: /keys/key/key_rsa.pub
+  user: cg
+  vm_dir: /debian13-1792325918
+```
+
+**Create a domain:**
+```bash
+$ cobia-cfg --os=2 --os-name="debina13" --create # Like "--apply", but immediately creates the domain
+$ cobia -c /path/to/domain/file.yml
+```
+Note: The correct OS name can be found via: `os-query os` command.
+
+**List domains:**
+```bash
+$ cobia -l domains
+```
+
+**Show domain info:**
+```bash
+$ cobia -i <vm name>
+```
+
+**List networks:**
+```bash
+$ cobia -l networks
 ```
 
