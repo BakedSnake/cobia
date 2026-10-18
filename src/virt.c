@@ -7,9 +7,20 @@
 #include "xml.h"
 #include "yaml.h"
 
+void create_network(virConnectPtr conn, const char *name)
+{
+    parse_yaml(name, NET_YAML);
+    xmlBufferPtr buf = xmlBufferCreate();
+    if (!buf) return;
+    const char* xml = create_network_xml(buf);
+    printf("%s\n", xml);
+    virNetworkDefineXML(conn, xml);
+    xmlBufferFree(buf);
+}
+
 void create_domain(virConnectPtr conn, const char *name)
 {
-    parse_yaml(name);
+    parse_yaml(name, DOM_YAML);
     xmlBufferPtr buf = xmlBufferCreate();
     if (!buf) return;
     const char* xml = create_domain_xml(buf);

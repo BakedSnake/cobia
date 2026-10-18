@@ -27,3 +27,5 @@ char *get_network_xml(virConnectPtr conn, const char *name);
 void show_networks(virConnectPtr conn);
 
 char *show_network_info(virConnectPtr conn, const char *name);
+
+void create_network(virConnectPtr conn, const char *name);

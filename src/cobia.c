@@ -30,6 +30,8 @@ char *VIDEO_MDL         = NULL;
 char *VMDIR             = NULL;
 char NVRAM[256]         = { 0 };
 
+Network NETWORK;
+
 key_map_t settings[20]  = {
     { "domain.boot",                        &BOOT     },
     { "domain.cpu",                         &CPU      },
@@ -51,6 +53,16 @@ key_map_t settings[20]  = {
     { "domain.ssh_key",                     &SSHKEY   },
     { "domain.user",                        &USER     },
     { "domain.vm_dir",                      &VMDIR    },
+};
+
+key_map_t net_settings[7] = {
+    { "network.name",                   &NETWORK.name},
+    { "network.forward",                &NETWORK.forward},
+    { "network.bridge",                 &NETWORK.bridge},
+    { "network.ip.address",             &NETWORK.ip},
+    { "network.ip.netmask",             &NETWORK.netmask},
+    { "network.ip.dhcp.range.start",    &NETWORK.range_start},
+    { "network.ip.dhcp.range.end",      &NETWORK.range_end},
 };
 
 int main(int argc, char **argv) {
@@ -77,7 +89,7 @@ int main(int argc, char **argv) {
 int argHandle(virConnectPtr conn, int argc, char* argv[])
 {
     int opt;
-    const char * arg_str = "hvc:l:s:q:D:i:p:x:n:";
+    const char * arg_str = "hvc:l:s:q:D:i:p:x:n:N:";
     while ((opt = getopt_long(argc, argv, arg_str, options, NULL)) != -1) {
         switch (opt) {
             case 'h':
@@ -115,6 +127,9 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                 break;
             case 'n':
                 show_network_info(conn, optarg);
+                break;
+            case 'N':
+                create_network(conn, optarg);
                 break;
             case '?':
                 default:
