@@ -2,7 +2,7 @@
 
 #include "cobia.h"
 
-void parse_yaml(const char *filepath)
+void parse_yaml(const char *filepath, int type)
 {
     int depth = 0;
     int key_count = 0;
@@ -68,13 +68,28 @@ void parse_yaml(const char *filepath)
     fclose(fp);
 
     // Assign parsed values
-    for (int i = 0; i < key_count; ++i) {
-        for (size_t j = 0; j < sizeof(settings)/sizeof(settings[0]); ++j) {
-            if (strcmp(keys[i], settings[j].key) == 0)
-                *settings[j].dest = values[i];
-        }
+    switch (type) {
+        case DOM_YAML:
+            for (int i = 0; i < key_count; ++i) {
+                for (size_t j = 0; j < sizeof(settings)/sizeof(settings[0]); ++j) {
+                    if (strcmp(keys[i], settings[j].key) == 0)
+                        *settings[j].dest = values[i];
+                }
 
-        fprintf(stdout, "%s: %s\n", settings[i].key, *settings[i].dest);
-        //fprintf(stdout, "%s: %s\n", keys[i], values[i]);
+                fprintf(stdout, "%s: %s\n", settings[i].key, *settings[i].dest);
+            }
+            break;
+        case NET_YAML:
+            for (int i = 0; i < key_count; ++i) {
+                for (size_t j = 0; j < sizeof(net_settings)/sizeof(net_settings[0]); ++j) {
+                    if (strcmp(keys[i], net_settings[j].key) == 0)
+                        *net_settings[j].dest = values[i];
+                }
+
+                fprintf(stdout, "%s: %s\n", net_settings[i].key, *net_settings[i].dest);
+            }
+            break;
+        default:
+            break;
     }
 }

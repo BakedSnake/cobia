@@ -1,3 +1,8 @@
 #include <yaml.h>
 
-void parse_yaml(const char *filepath);
+enum ytype {
+    DOM_YAML,
+    NET_YAML,
+};
+
+void parse_yaml(const char *filepath, int type);
