@@ -19,7 +19,6 @@ my $config_file = $VMConfig::config_file;
 my $uid;
 my $gid;
 my $vm_env;
-my $vm_os;
 my $ssh_key;
 
 my $dosu;
@@ -64,27 +63,6 @@ sub configure {
 
         exit(0);
     }
-    
-    if ($VMConfig::vm_image_choice) {
-        if ($VMConfig::vm_image_choice == 1) {
-            $vm_os = "alpine";
-        } elsif ($VMConfig::vm_image_choice == 2) {
-            $vm_os = "debian13";
-        } elsif ($VMConfig::vm_image_choice == 3) {
-            $vm_os = "gentoo";
-        } elsif ($VMConfig::vm_image_choice == 4) {
-            $vm_os = "gentoo";
-        } elsif ($VMConfig::vm_image_choice == 5) {
-            $vm_os = "opensuse16.0";
-        } elsif ($VMConfig::vm_image_choice == 6) {
-            $vm_os = "ubuntu24.04";
-        } else {
-            $vm_os = "ubuntu20.04";
-        }
-    } else {
-        print(STDERR "OS image not specified!\n");
-        print(STDERR "Please either use interactive, or specify using the --os flag.\n");
-    }
 
     if ($interactive) {
         print(STDOUT "\nVM Name: ");
@@ -102,7 +80,7 @@ sub configure {
             }
 
             chomp $date;
-            $VMConfig::domain_settings{name} = "$vm_os"."-$date";
+            $VMConfig::domain_settings{name} = "$VMConfig::domain_settings{os}"."-$date";
             close DATE;
         }
 
@@ -276,6 +254,7 @@ GetOptions(
     "name=s"        => \$VMConfig::domain_settings{name},
     "net=s"         => \$VMConfig::domain_settings{net},
     "os=s"          => \$VMConfig::vm_image_choice,
+    "os-name=s"     => \$VMConfig::domain_settings{os},
     "ram=s"         => \$VMConfig::domain_settings{ram},
     "secboot=s"     => \$VMConfig::domain_settings{secboot},
     "size=s"        => \$VMConfig::domain_settings{disksize},

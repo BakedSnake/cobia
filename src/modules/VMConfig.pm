@@ -31,6 +31,7 @@ our %domain_settings = (
     model => "virtio",
     name => "",
     net => "default",
+    os => "linux",
     ram => "2096",
     secboot => "no",
     video_driver => "qemu",
