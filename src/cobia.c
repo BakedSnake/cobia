@@ -11,8 +11,6 @@ int TOTAL_NET_COUNT         = 0;
 char *SRC                   = NULL;
 char *TRGT                  = NULL;
 
-Network                     NETWORK;
-
 keyval_t settings[MAXSET]   = {0};
 
 char* get_val(keyval_t pair[MAXSET], const char* keyname)

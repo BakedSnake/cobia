@@ -43,25 +43,25 @@ const char* create_network_xml(xmlBufferPtr buf)
         xmlTextWriterStartElement(w, BAD_CAST "network");
 
             xmlTextWriterStartElement(w, BAD_CAST "name");
-                xmlTextWriterWriteString(w, BAD_CAST NETWORK.name);
+                xmlTextWriterWriteString(w, BAD_CAST get_val(settings, "network.name"));
             xmlTextWriterEndElement(w);
 
             xmlTextWriterStartElement(w, BAD_CAST "forward");
-                xmlTextWriterWriteAttribute(w, BAD_CAST "mode", BAD_CAST NETWORK.forward);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "mode", BAD_CAST get_val(settings, "network.forward"));
             xmlTextWriterEndElement(w);
 
             xmlTextWriterStartElement(w, BAD_CAST "bridge");
-                xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST NETWORK.bridge);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST get_val(settings, "network.bridge"));
             xmlTextWriterEndElement(w);
 
             xmlTextWriterStartElement(w, BAD_CAST "ip");
-                xmlTextWriterWriteAttribute(w, BAD_CAST "address", BAD_CAST NETWORK.ip);
-                xmlTextWriterWriteAttribute(w, BAD_CAST "netmask", BAD_CAST NETWORK.netmask);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "address", BAD_CAST get_val(settings, "network.ip.address"));
+                xmlTextWriterWriteAttribute(w, BAD_CAST "netmask", BAD_CAST get_val(settings, "network.ip.netmask"));
 
                 xmlTextWriterStartElement(w, BAD_CAST "dhcp");
                     xmlTextWriterStartElement(w, BAD_CAST "range");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "start", BAD_CAST NETWORK.range_start);
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "end", BAD_CAST NETWORK.range_end);
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "start", BAD_CAST get_val(settings, "network.ip.dhcp.range.start"));
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "end", BAD_CAST get_val(settings, "network.ip.dhcp.range.end"));
                     xmlTextWriterEndElement(w);
                 xmlTextWriterEndElement(w);
 

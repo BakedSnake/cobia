@@ -1,37 +1,25 @@
 #include <getopt.h>
 #include <libvirt/libvirt.h>
 
-#define KVSIZE 256
-#define MAXDEPTH 8
-#define MAXKEYS 256
-#define MAXDISK 64
-#define MAXSET 64
+#define KVSIZE      256
+#define MAXDEPTH    8
+#define MAXKEYS     256
+#define MAXDISK     64
+#define MAXSET      64
 
-extern int TOTAL_VM_COUNT;
-extern int TOTAL_NET_COUNT;
-
-extern char *SRC;
+extern int          TOTAL_VM_COUNT;
+extern int          TOTAL_NET_COUNT;
+extern char*        SRC;
 
 typedef struct {
     char *key;
     char *val;
 } keyval_t;
 
-typedef struct Network {
-    char *name;
-    char *forward;
-    char *bridge;
-    char *ip;
-    char *netmask;
-    char *range_start;
-    char *range_end;
-} Network;
-
 extern keyval_t disk_settings[MAXDISK];
 extern keyval_t settings[MAXSET];
 extern keyval_t net_settings[7];
 
-extern Network      NETWORK;
 
 static struct option options[] = {
   {"help",              no_argument,            0, 'h'},
