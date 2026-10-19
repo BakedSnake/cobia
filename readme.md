@@ -82,7 +82,7 @@ domain:
 **Create a domain:**
 ```bash
 $ cobia-cfg --os=2 --os-name="debina13" --create # Like "--apply", but immediately creates the domain
-$ cobia -c /path/to/domain/file.yml
+$ cobia -s /path/to/domain/file.yml -d create
 ```
 Note: The correct OS name can be found via: `os-query os` command.
 
@@ -93,7 +93,7 @@ $ cobia -l domains
 
 **Show domain info:**
 ```bash
-$ cobia -i <vm name>
+$ cobia -t <vm name> -d info
 ```
 
 **List networks:**
