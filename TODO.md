@@ -6,6 +6,10 @@
   - [x] Getting domain info
   - [x] Creating a domain
   - [x] Deliging a domain
+- [ ] Manage "Hardware" ( controllers, etc. )
+  - [ ] Add new hardware
+  - [ ] Remove hardware
+  - [ ] Edit hardware
 - [ ] Manage Networks
   - [x] List networks
   - [x] Get network info
@@ -16,7 +20,6 @@
   - [ ] Resize a disk
   - [ ] Add storage
   - [ ] Remove storage
-- [ ] Improve XML string creation
 - [ ] Add TUI
 - [ ] Implement management via yaml files
   - [x] Parse yaml into xml and use it to create domain

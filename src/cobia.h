@@ -1,166 +1,25 @@
 #include <getopt.h>
 #include <libvirt/libvirt.h>
 
-#define KVSIZE 256
-#define MAXDEPTH 8
-#define MAXKEYS 256
+#define KVSIZE      256
+#define MAXDEPTH    8
+#define MAXKEYS     256
+#define MAXDISK     64
+#define MAXSET      64
 
-extern int TOTAL_VM_COUNT;
-extern int TOTAL_NET_COUNT;
-
-extern char *SRC;
-
-extern char *NAME;
-extern char *ARCH;
-extern char *BOOT;
-extern char *BOOTDEV;
-extern char *CPU;
-extern char *CD;
-extern char *EFI;
-extern char *MACHINE;
-extern char *SECBOOT;
-extern char *MEMORY;
-extern char *DISK;
-extern char *DISKSIZE;
-extern char *NET;
-extern char *MODEL;
-extern char *GRAPHICS;
-extern char NVRAM[256];
-extern char *VIDEO_DRV;
-extern char *VIDEO_MDL;
+extern int          TOTAL_VM_COUNT;
+extern int          TOTAL_NET_COUNT;
+extern char*        SRC;
 
 typedef struct {
-    const char *key;
-    char **dest;
-} key_map_t;
+    char *key;
+    char *val;
+} keyval_t;
 
-typedef struct Network {
-    char *name;
-    char *forward;
-    char *bridge;
-    char *ip;
-    char *netmask;
-    char *range_start;
-    char *range_end;
-} Network;
+extern keyval_t disk_settings[MAXDISK];
+extern keyval_t settings[MAXSET];
+extern keyval_t net_settings[7];
 
-extern Network NETWORK;
-
-typedef struct Feature {
-    char *enabled;
-    char *name;
-} Feature;
-
-typedef struct Loader {
-    char *readonly;
-    char *type;
-    char *format;
-    char *path;
-} Loader;
-
-typedef struct Nvram {
-    char *nv_template;
-    char *template_format;
-    char *format;
-    char *path;
-} Nvram;
-
-typedef struct Firmware {
-    Feature *features;
-    Loader loader;
-    Nvram nvram;
-} Firmware;
-
-typedef struct Boot {
-    char *device;
-} Boot;
-
-typedef struct Machine {
-    char *arch;
-    char *kind;
-    char *value;
-} Machine;
-
-typedef struct Os {
-    char *os_firmware;
-    Firmware firmware;
-    Machine type;
-    Boot *boot_devices;
-} Os;
-
-typedef struct Memory {
-    char *unit;
-    char *size;
-} Memory;
-
-typedef struct Vcpu {
-    char *placement;
-    char *cores;
-} Vcpu;
-
-typedef struct Cpu {
-    char *mode;
-    char *check;
-    char *migratable;
-} Cpu;
-
-typedef struct Features {
-    char *acpi;
-    char *apic;
-    char *vmport_state;
-    char *smm_state;
-} Features;
-
-typedef struct Controller {
-    char *type;
-    char *index;
-    char *model;
-} Controller;
-
-typedef struct Disk {
-    char *type;
-    char *device;
-    char *driver_name;
-    char *driver_type;
-    char *source_file;
-    char *target_dev;
-    char *target_bus;
-} Disk;
-
-typedef struct Sound {
-    char *model;
-} Sound;
-
-typedef struct Interface {
-    char *type;
-    char *source_network;
-    char *model_type;
-    /* Network interface ( there may be missing fields
-     * on other kinds of interfaces ) */
-} Interface;
-
-typedef struct Graphics {
-    char *type;
-    char *autoport;
-    char *listen_type;
-} Graphics;
-
-typedef struct Video {
-    char *model_type;
-    char *model_heads;
-    char *model_primary;
-    char *driver_name;
-} Video;
-
-typedef struct Channel {
-    char *type;
-    char *target_type;
-    char *target_name;
-    char *alias_name;
-} Channel;
-
-extern key_map_t settings[20];
-extern key_map_t net_settings[7];
 
 static struct option options[] = {
   {"help",              no_argument,            0, 'h'},
@@ -172,5 +31,7 @@ static struct option options[] = {
   {"target",            required_argument,      0, 't'},
   {0,                   0,                      0,  0 }
 };
+
+char* get_val(keyval_t pair[MAXSET], const char* keyname);
 
 int argHandle(virConnectPtr conn, int argc, char* argv[]);

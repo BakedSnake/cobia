@@ -9,7 +9,7 @@
 
 void create_network(virConnectPtr conn, const char *name)
 {
-    parse_yaml(name, NET_YAML);
+    parse_yaml(name);
     xmlBufferPtr buf = xmlBufferCreate();
     if (!buf) return;
     const char* xml = create_network_xml(buf);
@@ -29,7 +29,7 @@ void delete_network(virConnectPtr conn, const char *name)
 
 void create_domain(virConnectPtr conn, const char *name)
 {
-    parse_yaml(name, DOM_YAML);
+    parse_yaml(name);
     xmlBufferPtr buf = xmlBufferCreate();
     if (!buf) return;
     const char* xml = create_domain_xml(buf);

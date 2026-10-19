@@ -6,9 +6,11 @@
 #include "cobia.h"
 #include "xml.h"
 
-void get_nvram_path(const char *name)
+char* get_nvram_path(const char *name)
 {
-    snprintf(NVRAM, 256, "/var/lib/libvirt/qemu/nvram/%s_VARS.qcow2", name);
+    char *nvram = (char *)malloc(KVSIZE);
+    snprintf(nvram, KVSIZE, "/var/lib/libvirt/qemu/nvram/%s_VARS.qcow2", name);
+    return nvram;
 }
 
 char *xpath_get(xmlDocPtr doc, const char *path)
@@ -41,25 +43,25 @@ const char* create_network_xml(xmlBufferPtr buf)
         xmlTextWriterStartElement(w, BAD_CAST "network");
 
             xmlTextWriterStartElement(w, BAD_CAST "name");
-                xmlTextWriterWriteString(w, BAD_CAST NETWORK.name);
+                xmlTextWriterWriteString(w, BAD_CAST get_val(settings, "network.name"));
             xmlTextWriterEndElement(w);
 
             xmlTextWriterStartElement(w, BAD_CAST "forward");
-                xmlTextWriterWriteAttribute(w, BAD_CAST "mode", BAD_CAST NETWORK.forward);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "mode", BAD_CAST get_val(settings, "network.forward"));
             xmlTextWriterEndElement(w);
 
             xmlTextWriterStartElement(w, BAD_CAST "bridge");
-                xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST NETWORK.bridge);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST get_val(settings, "network.bridge"));
             xmlTextWriterEndElement(w);
 
             xmlTextWriterStartElement(w, BAD_CAST "ip");
-                xmlTextWriterWriteAttribute(w, BAD_CAST "address", BAD_CAST NETWORK.ip);
-                xmlTextWriterWriteAttribute(w, BAD_CAST "netmask", BAD_CAST NETWORK.netmask);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "address", BAD_CAST get_val(settings, "network.ip.address"));
+                xmlTextWriterWriteAttribute(w, BAD_CAST "netmask", BAD_CAST get_val(settings, "network.ip.netmask"));
 
                 xmlTextWriterStartElement(w, BAD_CAST "dhcp");
                     xmlTextWriterStartElement(w, BAD_CAST "range");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "start", BAD_CAST NETWORK.range_start);
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "end", BAD_CAST NETWORK.range_end);
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "start", BAD_CAST get_val(settings, "network.ip.dhcp.range.start"));
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "end", BAD_CAST get_val(settings, "network.ip.dhcp.range.end"));
                     xmlTextWriterEndElement(w);
                 xmlTextWriterEndElement(w);
 
@@ -83,56 +85,56 @@ const char* create_domain_xml(xmlBufferPtr buf)
     xmlTextWriterStartDocument(w, NULL, "UTF-8", NULL);
         xmlTextWriterStartElement(w, BAD_CAST "domain");
             xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "kvm");
-            xmlTextWriterWriteElement(w, BAD_CAST "name", BAD_CAST NAME);
+            xmlTextWriterWriteElement(w, BAD_CAST "name", BAD_CAST get_val(settings, "domain.name"));
 
             xmlTextWriterStartElement(w, BAD_CAST "memory");
                 xmlTextWriterWriteAttribute(w, BAD_CAST "unit", BAD_CAST "MiB");
-                xmlTextWriterWriteString(w, BAD_CAST MEMORY);
+                xmlTextWriterWriteString(w, BAD_CAST get_val(settings, "domain.ram"));
             xmlTextWriterEndElement(w);
 
             xmlTextWriterStartElement(w, BAD_CAST "vcpu");
                 xmlTextWriterWriteAttribute(w, BAD_CAST "placement", BAD_CAST "static");
-                xmlTextWriterWriteString(w, BAD_CAST CPU);
+                xmlTextWriterWriteString(w, BAD_CAST get_val(settings, "domain.cpu"));
             xmlTextWriterEndElement(w);
 
             xmlTextWriterStartElement(w, BAD_CAST "os");
                 xmlTextWriterWriteAttribute(w, BAD_CAST "firmware", BAD_CAST "efi");
                 xmlTextWriterStartElement(w, BAD_CAST "firmware");
                     xmlTextWriterStartElement(w, BAD_CAST "feature");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "enabled", BAD_CAST SECBOOT);
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "enabled", BAD_CAST get_val(settings, "domain.os.features.secure_boot"));
                         xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST "enrolled-keys");
                     xmlTextWriterEndElement(w);
                     xmlTextWriterStartElement(w, BAD_CAST "feature");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "enabled", BAD_CAST SECBOOT);
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "enabled", BAD_CAST get_val(settings, "domain.os.features.secure_boot"));
                         xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST "secure-boot");
                     xmlTextWriterEndElement(w);
                     xmlTextWriterStartElement(w, BAD_CAST "loader");
                         xmlTextWriterWriteAttribute(w, BAD_CAST "readonly", BAD_CAST "yes");
                         xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "pflash");
                         xmlTextWriterWriteAttribute(w, BAD_CAST "format", BAD_CAST "qcow2");
-                        if (strcmp(SECBOOT, "yes") == 0)
+                        if (strcmp(get_val(settings, "domain.os.features.secure_boot"), "yes") == 0)
                             xmlTextWriterWriteString(w, BAD_CAST "/usr/share/edk2/OvmfX64/OVMF_CODE.secboot.qcow2");
                         else
                             xmlTextWriterWriteString(w, BAD_CAST "/usr/share/edk2/OvmfX64/OVMF_CODE.qcow2");
                     xmlTextWriterEndElement(w);
                     xmlTextWriterStartElement(w, BAD_CAST "nvram");
-                        if (strcmp(SECBOOT, "yes") == 0)
+                        if (strcmp(get_val(settings, "domain.os.features.secure_boot"), "yes") == 0)
                             xmlTextWriterWriteAttribute(w, BAD_CAST "template", BAD_CAST "/usr/share/edk2/OvmfX64/OVMF_VARS.secboot.qcow2");
                         else
                             xmlTextWriterWriteAttribute(w, BAD_CAST "template", BAD_CAST "/usr/share/edk2/OvmfX64/OVMF_VARS.qcow2");
                         xmlTextWriterWriteAttribute(w, BAD_CAST "templateFormat", BAD_CAST "qcow2");
                         xmlTextWriterWriteAttribute(w, BAD_CAST "format", BAD_CAST "qcow2");
-                        xmlTextWriterWriteString(w, BAD_CAST NVRAM);
+                        xmlTextWriterWriteString(w, BAD_CAST get_nvram_path(get_val(settings, "domain.name")));
                     xmlTextWriterEndElement(w);
                 xmlTextWriterEndElement(w);
 
                 xmlTextWriterStartElement(w, BAD_CAST "type");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "arch", BAD_CAST ARCH);
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "machine", BAD_CAST MACHINE);
+                    xmlTextWriterWriteAttribute(w, BAD_CAST "arch", BAD_CAST get_val(settings, "domain.os.arch"));
+                    xmlTextWriterWriteAttribute(w, BAD_CAST "machine", BAD_CAST get_val(settings, "domain.os.machine"));
                     xmlTextWriterWriteString(w, BAD_CAST "hvm");
                 xmlTextWriterEndElement(w);
                 xmlTextWriterStartElement(w, BAD_CAST "boot");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "dev", BAD_CAST BOOTDEV);
+                    xmlTextWriterWriteAttribute(w, BAD_CAST "dev", BAD_CAST get_val(settings, "domain.os.bootdev"));
                 xmlTextWriterEndElement(w);
             xmlTextWriterEndElement(w);
 
@@ -161,12 +163,12 @@ const char* create_domain_xml(xmlBufferPtr buf)
 
                 xmlTextWriterStartElement(w, BAD_CAST "video");
                     xmlTextWriterStartElement(w, BAD_CAST "model");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST VIDEO_MDL);
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST get_val(settings, "domain.devices.video.model"));
                         xmlTextWriterWriteAttribute(w, BAD_CAST "heads", BAD_CAST "1");
                         xmlTextWriterWriteAttribute(w, BAD_CAST "primary", BAD_CAST "yes");
                     xmlTextWriterEndElement(w);
                     xmlTextWriterStartElement(w, BAD_CAST "driver");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST VIDEO_DRV);
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST get_val(settings, "domain.devices.video.driver"));
                     xmlTextWriterEndElement(w);
                 xmlTextWriterEndElement(w);
 
@@ -199,7 +201,7 @@ const char* create_domain_xml(xmlBufferPtr buf)
                 xmlTextWriterEndElement(w);
 
                 xmlTextWriterStartElement(w, BAD_CAST "source");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "file", BAD_CAST DISK);
+                    xmlTextWriterWriteAttribute(w, BAD_CAST "file", BAD_CAST get_val(settings, "domain.devices.disks.0.source"));
                     xmlTextWriterEndElement(w);
                     xmlTextWriterStartElement(w, BAD_CAST "target");
                         xmlTextWriterWriteAttribute(w, BAD_CAST "dev", BAD_CAST "vda");
@@ -216,7 +218,7 @@ const char* create_domain_xml(xmlBufferPtr buf)
                 xmlTextWriterEndElement(w);
 
                 xmlTextWriterStartElement(w, BAD_CAST "source");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "file", BAD_CAST CD);
+                    xmlTextWriterWriteAttribute(w, BAD_CAST "file", BAD_CAST get_val(settings, "domain.devices.disks.1.source"));
                     xmlTextWriterEndElement(w);
                     xmlTextWriterStartElement(w, BAD_CAST "target");
                         xmlTextWriterWriteAttribute(w, BAD_CAST "dev", BAD_CAST "sda");
@@ -227,10 +229,10 @@ const char* create_domain_xml(xmlBufferPtr buf)
                 xmlTextWriterStartElement(w, BAD_CAST "interface");
                     xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "network");
                     xmlTextWriterStartElement(w, BAD_CAST "source");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "network", BAD_CAST NET);
+                    xmlTextWriterWriteAttribute(w, BAD_CAST "network", BAD_CAST get_val(settings, "domain.devices.net.source"));
                     xmlTextWriterEndElement(w);
                     xmlTextWriterStartElement(w, BAD_CAST "model");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST MODEL);
+                    xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST get_val(settings, "domain.devices.net.model"));
                     xmlTextWriterEndElement(w);
                 xmlTextWriterEndElement(w);
 
@@ -246,7 +248,7 @@ const char* create_domain_xml(xmlBufferPtr buf)
                 xmlTextWriterEndElement(w);
 
                 xmlTextWriterStartElement(w, BAD_CAST "graphics");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST GRAPHICS);
+                    xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST get_val(settings, "domain.devices.graphics"));
                     xmlTextWriterWriteAttribute(w, BAD_CAST "autoport", BAD_CAST "yes");
                     xmlTextWriterStartElement(w, BAD_CAST "listen");
                         xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "address");
