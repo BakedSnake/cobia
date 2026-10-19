@@ -1,10 +1,26 @@
-#include <libxml2/libxml/xmlwriter.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "cobia.h"
 #include "xml.h"
+
+int get_disk_count(void)
+{
+    int count = 0;
+    for (int i = 0; i < MAXSET; ++i) {
+        char dstr[D_ATTSIZE];
+        snprintf(dstr, D_ATTSIZE, "domain.devices.disks.%d.source", i);
+
+        if (get_val(settings, dstr) != NULL) {
+            ++count;
+        } else {
+            break;
+        }
+    }
+
+    return count;
+}
 
 char* get_nvram_path(const char *name)
 {
@@ -15,7 +31,7 @@ char* get_nvram_path(const char *name)
 
 char *xpath_get(xmlDocPtr doc, const char *path)
 {
-    char *result = (char *)malloc(256);
+    char *result = (char *)malloc(KVSIZE);
     xmlXPathContext *ctx = xmlXPathNewContext(doc);
     xmlXPathObject *obj = xmlXPathEvalExpression((const xmlChar*)path, ctx);
 
@@ -192,39 +208,50 @@ const char* create_domain_xml(xmlBufferPtr buf)
                     xmlTextWriterEndElement(w);
                 xmlTextWriterEndElement(w);
 
-                xmlTextWriterStartElement(w, BAD_CAST "disk");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "file");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "device", BAD_CAST "disk");
-                xmlTextWriterStartElement(w, BAD_CAST "driver");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST "qemu");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "qcow2");
-                xmlTextWriterEndElement(w);
+                int disk_count = get_disk_count();
+                for (int i = 0; i < disk_count; ++i) {
+                    char d_type[D_ATTSIZE]; char d_src[D_ATTSIZE];
+                    snprintf(d_type, D_ATTSIZE, "domain.devices.disks.%d.type", i);
+                    snprintf(d_src, D_ATTSIZE, "domain.devices.disks.%d.source", i);
 
-                xmlTextWriterStartElement(w, BAD_CAST "source");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "file", BAD_CAST get_val(settings, "domain.devices.disks.0.source"));
-                    xmlTextWriterEndElement(w);
-                    xmlTextWriterStartElement(w, BAD_CAST "target");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "dev", BAD_CAST "vda");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "bus", BAD_CAST "virtio");
-                    xmlTextWriterEndElement(w);
-                xmlTextWriterEndElement(w);
+                    if (strcmp(get_val(settings, d_type), "hdd") == 0) {
+                        xmlTextWriterStartElement(w, BAD_CAST "disk");
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "file");
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "device", BAD_CAST "disk");
+                        xmlTextWriterStartElement(w, BAD_CAST "driver");
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST "qemu");
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "qcow2");
+                        xmlTextWriterEndElement(w);
 
-                xmlTextWriterStartElement(w, BAD_CAST "disk");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "file");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "device", BAD_CAST "cdrom");
-                xmlTextWriterStartElement(w, BAD_CAST "driver");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST "qemu");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "raw");
-                xmlTextWriterEndElement(w);
+                        xmlTextWriterStartElement(w, BAD_CAST "source");
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "file", BAD_CAST get_val(settings, d_src));
+                            xmlTextWriterEndElement(w);
+                            xmlTextWriterStartElement(w, BAD_CAST "target");
+                                xmlTextWriterWriteAttribute(w, BAD_CAST "dev", BAD_CAST "vda");
+                                xmlTextWriterWriteAttribute(w, BAD_CAST "bus", BAD_CAST "virtio");
+                            xmlTextWriterEndElement(w);
+                        xmlTextWriterEndElement(w);
+                    }
 
-                xmlTextWriterStartElement(w, BAD_CAST "source");
-                    xmlTextWriterWriteAttribute(w, BAD_CAST "file", BAD_CAST get_val(settings, "domain.devices.disks.1.source"));
-                    xmlTextWriterEndElement(w);
-                    xmlTextWriterStartElement(w, BAD_CAST "target");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "dev", BAD_CAST "sda");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "bus", BAD_CAST "scsi");
-                    xmlTextWriterEndElement(w);
-                xmlTextWriterEndElement(w);
+                    if (strcmp(get_val(settings, d_type), "cd") == 0) {
+                        xmlTextWriterStartElement(w, BAD_CAST "disk");
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "file");
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "device", BAD_CAST "cdrom");
+                        xmlTextWriterStartElement(w, BAD_CAST "driver");
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST "qemu");
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "raw");
+                        xmlTextWriterEndElement(w);
+
+                        xmlTextWriterStartElement(w, BAD_CAST "source");
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "file", BAD_CAST get_val(settings, d_src));
+                            xmlTextWriterEndElement(w);
+                            xmlTextWriterStartElement(w, BAD_CAST "target");
+                                xmlTextWriterWriteAttribute(w, BAD_CAST "dev", BAD_CAST "sda");
+                                xmlTextWriterWriteAttribute(w, BAD_CAST "bus", BAD_CAST "scsi");
+                            xmlTextWriterEndElement(w);
+                        xmlTextWriterEndElement(w);
+                    }
+                }
 
                 xmlTextWriterStartElement(w, BAD_CAST "interface");
                     xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "network");

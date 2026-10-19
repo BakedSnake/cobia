@@ -6,6 +6,7 @@
 #define MAXKEYS     256
 #define MAXDISK     64
 #define MAXSET      64
+#define D_ATTSIZE   32
 
 extern int          TOTAL_VM_COUNT;
 extern int          TOTAL_NET_COUNT;
