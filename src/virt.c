@@ -18,6 +18,15 @@ void create_network(virConnectPtr conn, const char *name)
     xmlBufferFree(buf);
 }
 
+void delete_network(virConnectPtr conn, const char *name)
+{
+    virNetworkPtr net = get_network(conn, name);
+    if (net != NULL) {
+        virNetworkUndefine(net);
+        fprintf(stdout, "Network %s was deleted\n", virNetworkGetName(net));
+    }
+}
+
 void create_domain(virConnectPtr conn, const char *name)
 {
     parse_yaml(name, DOM_YAML);

@@ -29,3 +29,5 @@ void show_networks(virConnectPtr conn);
 char *show_network_info(virConnectPtr conn, const char *name);
 
 void create_network(virConnectPtr conn, const char *name);
+
+void delete_network(virConnectPtr conn, const char *name);
