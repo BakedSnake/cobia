@@ -1,74 +1,30 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "cobia.h"
 #include "xml.h"
 #include "virt.h"
 
-int TOTAL_VM_COUNT      = 0;
-int TOTAL_NET_COUNT     = 0;
+int TOTAL_VM_COUNT          = 0;
+int TOTAL_NET_COUNT         = 0;
+char *SRC                   = NULL;
+char *TRGT                  = NULL;
 
-char *SRC               = NULL;
-char *TRGT              = NULL;
+Network                     NETWORK;
 
-char *CD                = NULL;
-char *DISK              = NULL;
-char *DISKSIZE          = NULL;
-char *EFI               = NULL;
+keyval_t settings[MAXSET]   = {0};
 
-Domain                  DOMAIN;
-Network                 NETWORK;
-Feature                 SECBOOT;
-Loader                  LOADER;
-Nvram                   NVRAM;
-Firmware                FIRMWARE;
-Boot                    BOOT;
-Machine                 MACHINE;
-Os                      OS;
-Memory                  MEMORY;
-Vcpu                    VCPU;
-Cpu                     CPU;
-Sound                   SOUND;
-Interface               INTERFACE;
-Graphics                GRAPHICS;
-Video                   VIDEO;
-Channel                 CHANNEL;
+char* get_val(keyval_t pair[MAXSET], const char* keyname)
+{
+    for (size_t i = 0; i < MAXSET; ++i) {
+        if (strcmp(pair[i].key, keyname) == 0) {
+            if (pair[i].val != NULL) return pair[i].val;
+        }
+    }
 
-Controller*             CONTROLLERS;
-Disk*                   DISKS;
-
-key_map_t settings[20]  = {
-    { "domain.boot",                        &BOOT.device                },
-    { "domain.cpu",                         &VCPU.cores                 },
-    { "domain.devices.cd",                  &CD                         },
-    { "domain.devices.disk.size",           &DISKSIZE                   },
-    { "domain.devices.disk.source",         &DISK                       },
-    { "domain.devices.graphics",            &GRAPHICS.type              },
-    { "domain.devices.net",                 &INTERFACE.source_network   },
-    { "domain.devices.video.driver",        &VIDEO.driver_name          },
-    { "domain.devices.video.model",         &VIDEO.model_type           },
-    { "domain.model",                       &INTERFACE.model_type       },
-    { "domain.name",                        &DOMAIN.name                },
-    { "domain.os.arch",                     &OS.arch                    },
-    { "domain.os.bootdev",                  &BOOT.device                },
-    { "domain.os.efi",                      &EFI                        },
-    { "domain.os.features.secure_boot",     &SECBOOT.enabled            },
-    { "domain.os.machine",                  &MACHINE.kind               },
-    { "domain.ram",                         &MEMORY.size                },
-    { "domain.ssh_key",                     &DOMAIN.key                 },
-    { "domain.user",                        &DOMAIN.user                },
-    { "domain.vm_dir",                      &DOMAIN.dir                 },
-};
-
-key_map_t net_settings[7] = {
-    { "network.name",                   &NETWORK.name},
-    { "network.forward",                &NETWORK.forward},
-    { "network.bridge",                 &NETWORK.bridge},
-    { "network.ip.address",             &NETWORK.ip},
-    { "network.ip.netmask",             &NETWORK.netmask},
-    { "network.ip.dhcp.range.start",    &NETWORK.range_start},
-    { "network.ip.dhcp.range.end",      &NETWORK.range_end},
-};
+    return NULL;
+}
 
 int main(int argc, char **argv) {
     virConnectPtr conn;
@@ -132,10 +88,11 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                 }
                 if (strcmp(optarg, "delete") == 0) {
                     if (TRGT != NULL) {
-                        get_nvram_path(TRGT);
-                        fprintf(stdout, "%s\n", NVRAM.path);
+                        char* nvram = get_nvram_path(TRGT);
+                        fprintf(stdout, "%s\n", nvram);
                         delete_domain(conn, TRGT);
                         TRGT = NULL;
+                        free(nvram);
                     }
                 }
                 break;
@@ -192,5 +149,9 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
         }
     }
 
+    for (size_t i = 0; i < MAXSET; ++i) {
+        free(settings[i].key);
+        free(settings[i].val);
+    }
     return 0;
 }
