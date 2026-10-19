@@ -11,7 +11,7 @@
   - [x] Get network info
   - [x] Create a network
   - [ ] Bootstrap network yaml
-  - [ ] Delete a network
+  - [x] Delete a network
 - [ ] Manage Storage
   - [ ] Resize a disk
   - [ ] Add storage

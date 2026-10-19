@@ -8,6 +8,8 @@
 extern int TOTAL_VM_COUNT;
 extern int TOTAL_NET_COUNT;
 
+extern char *SRC;
+
 extern char *NAME;
 extern char *ARCH;
 extern char *BOOT;
@@ -163,15 +165,11 @@ extern key_map_t net_settings[7];
 static struct option options[] = {
   {"help",              no_argument,            0, 'h'},
   {"version",           no_argument,            0, 'v'},
-  {"create",            required_argument,      0, 'c'},
+  {"domain",            required_argument,      0, 'd'},
   {"list",              required_argument,      0, 'l'},
-  {"start",             required_argument,      0, 's'},
-  {"stop",              required_argument,      0, 'q'},
-  {"delete",            required_argument,      0, 'D'},
-  {"info",              required_argument,      0, 'i'},
-  {"xml",               required_argument,      0, 'x'},
-  {"netinfo",           required_argument,      0, 'n'},
-  {"netcreate",         required_argument,      0, 'N'},
+  {"network",           required_argument,      0, 'n'},
+  {"source",            required_argument,      0, 's'},
+  {"target",            required_argument,      0, 't'},
   {0,                   0,                      0,  0 }
 };
 

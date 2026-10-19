@@ -8,6 +8,9 @@
 int TOTAL_VM_COUNT      = 0;
 int TOTAL_NET_COUNT     = 0;
 
+char *SRC               = NULL;
+char *TRGT              = NULL;
+
 char *NAME              = NULL;
 char *ARCH              = NULL;
 char *BOOT              = NULL;
@@ -89,16 +92,53 @@ int main(int argc, char **argv) {
 int argHandle(virConnectPtr conn, int argc, char* argv[])
 {
     int opt;
-    const char * arg_str = "hvc:l:s:q:D:i:p:x:n:N:";
+    const char * arg_str = "hvd:l:n:s:t:";
     while ((opt = getopt_long(argc, argv, arg_str, options, NULL)) != -1) {
         switch (opt) {
+            case 'd':
+                if (strcmp(optarg, "create") == 0) {
+                    if (SRC != NULL) {
+                        fprintf(stdout, "%s:\n", SRC);
+                        create_domain(conn, SRC);
+                        SRC = NULL;
+                    }
+                }
+                if (strcmp(optarg, "info") == 0) {
+                    if (TRGT != NULL) {
+                        fprintf(stdout, "%s:\n", TRGT);
+                        show_vm_info(TRGT, conn);
+                        TRGT = NULL;
+                    }
+                }
+                if (strcmp(optarg, "xml") == 0) {
+                    if (TRGT != NULL) {
+                        fprintf(stdout, "%s\n", get_domain_xml(conn, TRGT));
+                        TRGT = NULL;
+                    }
+                }
+                if (strcmp(optarg, "start") == 0) {
+                    if (TRGT != NULL) {
+                        start_domain(conn, TRGT);
+                        TRGT = NULL;
+                    }
+                }
+                if (strcmp(optarg, "stop") == 0) {
+                    if (TRGT != NULL) {
+                        stop_domain(conn, TRGT);
+                        TRGT = NULL;
+                    }
+                }
+                if (strcmp(optarg, "delete") == 0) {
+                    if (TRGT != NULL) {
+                        get_nvram_path(TRGT);
+                        fprintf(stdout, "%s\n", NVRAM);
+                        delete_domain(conn, TRGT);
+                        TRGT = NULL;
+                    }
+                }
+                break;
             case 'h':
                 // TODO
-            case 'v':
-                // TODO
-            case 'c':
-                create_domain(conn, optarg);
-                break;
             case 'l':
                 if (strcmp(optarg, "domains") == 0) {
                     show_domains(conn);
@@ -107,30 +147,43 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                     show_networks(conn);
                 }
                 break;
-            case 'i':
-                fprintf(stdout, "%s:\n", optarg);
-                show_vm_info(optarg, conn);
+            case 'n':
+                if (strcmp(optarg, "create") == 0) {
+                    if (SRC != NULL) {
+                        create_network(conn, SRC);
+                        SRC = NULL;
+                    } else {
+                        fprintf(stderr, "Source file not specified\n");
+                        return 1;
+                    }
+                }
+                if (strcmp(optarg, "info") == 0) {
+                    if (TRGT != NULL) {
+                        show_network_info(conn, TRGT);
+                        TRGT = NULL;
+                    } else {
+                        fprintf(stderr, "Target not specified\n");
+                        return 1;
+                    }
+                }
+                if (strcmp(optarg, "delete") == 0) {
+                    if (TRGT != NULL) {
+                        delete_network(conn, TRGT);
+                        TRGT = NULL;
+                    } else {
+                        fprintf(stderr, "Target not specified\n");
+                        return 1;
+                    }
+                }
                 break;
             case 's':
-                start_domain(conn, optarg);
+                SRC = optarg;
                 break;
-            case 'q':
-                stop_domain(conn, optarg);
+            case 't':
+                TRGT = optarg;
                 break;
-            case 'D':
-                get_nvram_path(optarg);
-                fprintf(stdout, "%s\n", NVRAM);
-                delete_domain(conn, optarg);
-                break;
-            case 'x':
-                fprintf(stdout, "%s\n", get_domain_xml(conn, optarg));
-                break;
-            case 'n':
-                show_network_info(conn, optarg);
-                break;
-            case 'N':
-                create_network(conn, optarg);
-                break;
+            case 'v':
+                // TODO
             case '?':
                 default:
                 break;
