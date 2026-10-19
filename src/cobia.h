@@ -10,29 +10,22 @@ extern int TOTAL_NET_COUNT;
 
 extern char *SRC;
 
-extern char *NAME;
-extern char *ARCH;
-extern char *BOOT;
-extern char *BOOTDEV;
-extern char *CPU;
 extern char *CD;
 extern char *EFI;
-extern char *MACHINE;
-extern char *SECBOOT;
-extern char *MEMORY;
 extern char *DISK;
 extern char *DISKSIZE;
-extern char *NET;
-extern char *MODEL;
-extern char *GRAPHICS;
-extern char NVRAM[256];
-extern char *VIDEO_DRV;
-extern char *VIDEO_MDL;
 
 typedef struct {
     const char *key;
     char **dest;
 } key_map_t;
+
+typedef struct Domain {
+    char *name;
+    char *user;
+    char *key;
+    char *dir;
+} Domain;
 
 typedef struct Network {
     char *name;
@@ -43,8 +36,6 @@ typedef struct Network {
     char *range_start;
     char *range_end;
 } Network;
-
-extern Network NETWORK;
 
 typedef struct Feature {
     char *enabled;
@@ -83,9 +74,7 @@ typedef struct Machine {
 
 typedef struct Os {
     char *os_firmware;
-    Firmware firmware;
-    Machine type;
-    Boot *boot_devices;
+    char* arch;
 } Os;
 
 typedef struct Memory {
@@ -161,6 +150,27 @@ typedef struct Channel {
 
 extern key_map_t settings[20];
 extern key_map_t net_settings[7];
+
+extern Domain       DOMAIN;
+extern Network      NETWORK;
+extern Feature      SECBOOT;
+extern Loader       LOADER;
+extern Nvram        NVRAM;
+extern Firmware     FIRMWARE;
+extern Boot         BOOT;
+extern Machine      MACHINE;
+extern Os           OS;
+extern Memory       MEMORY;
+extern Vcpu         VCPU;
+extern Cpu          CPU;
+extern Sound        SOUND;
+extern Interface    INTERFACE;
+extern Graphics     GRAPHICS;
+extern Video        VIDEO;
+extern Channel      CHANNEL;
+
+extern Controller*  CONTROLLERS;
+extern Disk*        DISKS;
 
 static struct option options[] = {
   {"help",              no_argument,            0, 'h'},

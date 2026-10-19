@@ -11,51 +11,53 @@ int TOTAL_NET_COUNT     = 0;
 char *SRC               = NULL;
 char *TRGT              = NULL;
 
-char *NAME              = NULL;
-char *ARCH              = NULL;
-char *BOOT              = NULL;
-char *BOOTDEV           = NULL;
-char *CPU               = NULL;
 char *CD                = NULL;
 char *DISK              = NULL;
 char *DISKSIZE          = NULL;
 char *EFI               = NULL;
-char *MACHINE           = NULL;
-char *MEMORY            = NULL;
-char *NET               = NULL;
-char *MODEL             = NULL;
-char *GRAPHICS          = NULL;
-char *SECBOOT           = NULL;
-char *SSHKEY            = NULL;
-char *USER              = NULL;
-char *VIDEO_DRV         = NULL;
-char *VIDEO_MDL         = NULL;
-char *VMDIR             = NULL;
-char NVRAM[256]         = { 0 };
 
-Network NETWORK;
+Domain                  DOMAIN;
+Network                 NETWORK;
+Feature                 SECBOOT;
+Loader                  LOADER;
+Nvram                   NVRAM;
+Firmware                FIRMWARE;
+Boot                    BOOT;
+Machine                 MACHINE;
+Os                      OS;
+Memory                  MEMORY;
+Vcpu                    VCPU;
+Cpu                     CPU;
+Sound                   SOUND;
+Interface               INTERFACE;
+Graphics                GRAPHICS;
+Video                   VIDEO;
+Channel                 CHANNEL;
+
+Controller*             CONTROLLERS;
+Disk*                   DISKS;
 
 key_map_t settings[20]  = {
-    { "domain.boot",                        &BOOT     },
-    { "domain.cpu",                         &CPU      },
-    { "domain.devices.cd",                  &CD       },
-    { "domain.devices.disk.size",           &DISKSIZE },
-    { "domain.devices.disk.source",         &DISK     },
-    { "domain.devices.graphics",            &GRAPHICS },
-    { "domain.devices.net",                 &NET      },
-    { "domain.devices.video.driver",        &VIDEO_DRV},
-    { "domain.devices.video.model",         &VIDEO_MDL},
-    { "domain.model",                       &MODEL    },
-    { "domain.name",                        &NAME     },
-    { "domain.os.arch",                     &ARCH     },
-    { "domain.os.bootdev",                  &BOOTDEV  },
-    { "domain.os.efi",                      &EFI      },
-    { "domain.os.features.secure_boot",     &SECBOOT  },
-    { "domain.os.machine",                  &MACHINE  },
-    { "domain.ram",                         &MEMORY   },
-    { "domain.ssh_key",                     &SSHKEY   },
-    { "domain.user",                        &USER     },
-    { "domain.vm_dir",                      &VMDIR    },
+    { "domain.boot",                        &BOOT.device                },
+    { "domain.cpu",                         &VCPU.cores                 },
+    { "domain.devices.cd",                  &CD                         },
+    { "domain.devices.disk.size",           &DISKSIZE                   },
+    { "domain.devices.disk.source",         &DISK                       },
+    { "domain.devices.graphics",            &GRAPHICS.type              },
+    { "domain.devices.net",                 &INTERFACE.source_network   },
+    { "domain.devices.video.driver",        &VIDEO.driver_name          },
+    { "domain.devices.video.model",         &VIDEO.model_type           },
+    { "domain.model",                       &INTERFACE.model_type       },
+    { "domain.name",                        &DOMAIN.name                },
+    { "domain.os.arch",                     &OS.arch                    },
+    { "domain.os.bootdev",                  &BOOT.device                },
+    { "domain.os.efi",                      &EFI                        },
+    { "domain.os.features.secure_boot",     &SECBOOT.enabled            },
+    { "domain.os.machine",                  &MACHINE.kind               },
+    { "domain.ram",                         &MEMORY.size                },
+    { "domain.ssh_key",                     &DOMAIN.key                 },
+    { "domain.user",                        &DOMAIN.user                },
+    { "domain.vm_dir",                      &DOMAIN.dir                 },
 };
 
 key_map_t net_settings[7] = {
@@ -131,7 +133,7 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                 if (strcmp(optarg, "delete") == 0) {
                     if (TRGT != NULL) {
                         get_nvram_path(TRGT);
-                        fprintf(stdout, "%s\n", NVRAM);
+                        fprintf(stdout, "%s\n", NVRAM.path);
                         delete_domain(conn, TRGT);
                         TRGT = NULL;
                     }
