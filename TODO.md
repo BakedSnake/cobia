@@ -28,6 +28,5 @@
   - [ ] XML validation
   - [ ] YAML validation
 - [ ] Cache OS Cloud images
-- [ ] Add support for adding / using local os isos
-- [ ] Flag rework/refactor
+- [x] Flag rework/refactor
 

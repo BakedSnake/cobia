@@ -46,7 +46,7 @@ Note: These options assume you have a virtual network named default, and that it
 **Bootstrap domain configuration:**
 ```bash
 $ cobia-cfg --interactive --apply
-$ cobia-cfg --os=2 --os-name=debian13 --apply # Create Debian domain yaml file
+$ cobia-cfg --os=2 --os-name="debian13" --apply # Create Debian domain yaml file
 ```
 
 ```yaml
@@ -55,16 +55,21 @@ domain:
   boot: uefi
   cpu: '2'
   devices:
-    cd: /debian13-1792325918/cidata.iso
-    disk:
-      size: '40'
-      source: /debian13-1792325918/debian13-1792325918.qcow2
+    disks:
+        '0':
+            size: '40'
+            source: /debian13-1792325918/debian13-1792325918.qcow2
+            type: hdd
+        '1':
+            source: /debian13-1792325918/cidata.iso
+            type: cd
     graphics: spice
-    net: default
+    net:
+        model: virtio
+        source: default
     video:
       driver: qemu
       model: virtio
-  model: virtio
   name: debian13-1792325918
   os:
     arch: x86_64
@@ -79,13 +84,6 @@ domain:
   vm_dir: /debian13-1792325918
 ```
 
-**Create a domain:**
-```bash
-$ cobia-cfg --os=2 --os-name="debina13" --create # Like "--apply", but immediately creates the domain
-$ cobia -s /path/to/domain/file.yml -d create
-```
-Note: The correct OS name can be found via: `os-query os` command.
-
 **List domains:**
 ```bash
 $ cobia -l domains
@@ -93,7 +91,29 @@ $ cobia -l domains
 
 **Show domain info:**
 ```bash
-$ cobia -t <vm name> -d info
+$ cobia -d info <domain name>
+```
+
+**Start domain:**
+```bash
+$ cobia -d start <domain name>
+```
+
+**Stop domain:**
+```bash
+$ cobia -d stop <domain name>
+```
+
+**Create ( define ) a domain:**
+```bash
+$ cobia-cfg --os=2 --os-name="debina13" --create # Like "--apply", but immediately creates the domain
+$ cobia -d create /path/to/domain/file.yml
+```
+Note: The correct OS name can be found via: `os-query os` command.
+
+**Delete ( undefine ) domain:**
+```bash
+$ cobia -d delete <domain name>
 ```
 
 **List networks:**
