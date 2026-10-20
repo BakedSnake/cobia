@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdlib.h>
-#include <libvirt/libvirt.h>
 
 #include "cobia.h"
 #include "virt.h"
@@ -29,6 +28,7 @@ void delete_network(virConnectPtr conn, const char *name)
 
 void create_domain(virConnectPtr conn, const char *name)
 {
+    fprintf(stdout, "%s:\n", name);
     parse_yaml(name);
     xmlBufferPtr buf = xmlBufferCreate();
     if (!buf) return;
@@ -101,14 +101,12 @@ virDomainPtr get_domain(virConnectPtr conn, const char *name)
     return NULL;
 }
 
-char *get_domain_xml(virConnectPtr conn, const char *name)
+void show_domain_xml(virConnectPtr conn, const char *name)
 {
     virDomainPtr dom = get_domain(conn, name);
     if (dom != NULL) {
-        return virDomainGetXMLDesc(dom, 0);
+        fprintf(stdout, "%s\n", virDomainGetXMLDesc(dom, 0));
     }
-
-    return NULL;
 }
 
 void show_domains(virConnectPtr conn)
@@ -128,10 +126,11 @@ void show_domains(virConnectPtr conn)
     }
 }
 
-void show_vm_info(char *name, virConnectPtr conn)
+void show_vm_info(virConnectPtr conn, const char *name)
 {
     virDomainPtr *doms = get_all_domains(conn);
     if (doms != NULL) {
+        fprintf(stdout, "%s:\n", name);
         for (int i = 0; i < TOTAL_VM_COUNT; ++i) {
             virDomainPtr dom = doms[i];
             if (dom != NULL && strcmp(virDomainGetName(dom), name) == 0) {
@@ -205,14 +204,14 @@ char *get_network_xml(virConnectPtr conn, const char *name)
     return NULL;
 }
 
-char *show_network_info(virConnectPtr conn, const char *name)
+void show_network_info(virConnectPtr conn, const char *name)
 {
     char *netxml = get_network_xml(conn, name);
     if (netxml != NULL) {
         xmlDocPtr doc = xmlReadMemory(netxml, strlen(netxml), "n.xml", NULL, XML_PARSE_RECOVER | XML_PARSE_NOBLANKS);
         if (doc == NULL) {
             fprintf(stderr, "Failed to parse network xml\n");
-            return NULL;
+            return;
         }
 
         fprintf(stdout, "Network Info:\n");
@@ -226,5 +225,5 @@ char *show_network_info(virConnectPtr conn, const char *name)
                 xpath_get(doc, "/network/ip/dhcp/range/@end"));
     }
 
-    return NULL;
+    return;
 }
