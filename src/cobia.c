@@ -16,6 +16,7 @@ keyval_t settings[MAXSET]   = {0};
 char* get_val(keyval_t pair[MAXSET], const char* keyname)
 {
     for (size_t i = 0; i < MAXSET; ++i) {
+        if (pair[i].key == NULL) return NULL;
         if (strcmp(pair[i].key, keyname) == 0) {
             if (pair[i].val != NULL) return pair[i].val;
         }
