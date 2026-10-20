@@ -23,6 +23,23 @@ char* get_val(keyval_t pair[MAXSET], const char* keyname)
     return NULL;
 }
 
+void exec_cmd(virConnectPtr conn, const char* arg,
+        const char* target, void (*cmdf)(virConnectPtr c, const char* t))
+{
+    if (strcmp(target, arg) != 0) {
+        if (strcmp(arg, "delete") == 0) {
+            char* nvram = get_nvram_path(target);
+            fprintf(stdout, "%s\n", nvram);
+            free(nvram);
+        }
+
+        cmdf(conn, target);
+    } else {
+        fprintf(stderr, "target not specified\n");
+        return;
+    }
+}
+
 int main(int argc, char **argv) {
     virConnectPtr conn;
 
@@ -47,81 +64,46 @@ int main(int argc, char **argv) {
 int argHandle(virConnectPtr conn, int argc, char* argv[])
 {
     int opt;
-    const char * arg_str = "hvd:l:n:s:t:";
+    const char * arg_str = "hvd:l:n:";
     while ((opt = getopt_long(argc, argv, arg_str, options, NULL)) != -1) {
         switch (opt) {
             case 'd':
-                if (strcmp(optarg, "create") == 0) {
-                    if (strcmp(argv[argc-1], optarg) != 0) {
-                        fprintf(stdout, "%s:\n", argv[argc-1]);
-                        create_domain(conn, argv[argc-1]);
-                    }
-                }
-                if (strcmp(optarg, "info") == 0) {
-                    if (strcmp(argv[argc-1], optarg) != 0) {
-                        fprintf(stdout, "%s:\n", argv[argc-1]);
-                        show_vm_info(argv[argc-1], conn);
-                    }
-                }
-                if (strcmp(optarg, "xml") == 0) {
-                    if (strcmp(argv[argc-1], optarg) != 0) {
-                        fprintf(stdout, "%s\n", get_domain_xml(conn, argv[argc-1]));
-                    }
-                }
-                if (strcmp(optarg, "start") == 0) {
-                    if (strcmp(argv[argc-1], optarg) != 0) {
-                        start_domain(conn, argv[argc-1]);
-                    }
-                }
-                if (strcmp(optarg, "stop") == 0) {
-                    if (strcmp(argv[argc-1], optarg) != 0) {
-                        stop_domain(conn, argv[argc-1]);
-                    }
-                }
-                if (strcmp(optarg, "delete") == 0) {
-                    if (strcmp(argv[argc-1], optarg) != 0) {
-                        char* nvram = get_nvram_path(argv[argc-1]);
-                        fprintf(stdout, "%s\n", nvram);
-                        delete_domain(conn, argv[argc-1]);
-                        free(nvram);
-                    }
-                }
+                if (strcmp(optarg, "create") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], create_domain);
+
+                if (strcmp(optarg, "info") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], show_vm_info);
+
+                if (strcmp(optarg, "xml") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], show_domain_xml);
+
+                if (strcmp(optarg, "start") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], start_domain);
+
+                if (strcmp(optarg, "stop") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], stop_domain);
+
+                if (strcmp(optarg, "delete") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], delete_domain);
                 break;
             case 'h':
                 // TODO
             case 'l':
-                if (strcmp(optarg, "domains") == 0) {
+                if (strcmp(optarg, "domains") == 0)
                     show_domains(conn);
-                }
-                if (strcmp(optarg, "networks") == 0) {
+
+                if (strcmp(optarg, "networks") == 0)
                     show_networks(conn);
-                }
                 break;
             case 'n':
-                if (strcmp(optarg, "create") == 0) {
-                    if (strcmp(argv[argc-1], optarg) != 0) {
-                        create_network(conn, argv[argc-1]);
-                    } else {
-                        fprintf(stderr, "Source file not specified\n");
-                        return 1;
-                    }
-                }
-                if (strcmp(optarg, "info") == 0) {
-                    if (strcmp(argv[argc-1], optarg) != 0) {
-                        show_network_info(conn, argv[argc-1]);
-                    } else {
-                        fprintf(stderr, "Target not specified\n");
-                        return 1;
-                    }
-                }
-                if (strcmp(optarg, "delete") == 0) {
-                    if (strcmp(argv[argc-1], optarg) != 0) {
-                        delete_network(conn, argv[argc-1]);
-                    } else {
-                        fprintf(stderr, "Target not specified\n");
-                        return 1;
-                    }
-                }
+                if (strcmp(optarg, "create") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], create_network);
+
+                if (strcmp(optarg, "info") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], show_network_info);
+
+                if (strcmp(optarg, "delete") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], delete_network);
                 break;
             case 'v':
                 // TODO

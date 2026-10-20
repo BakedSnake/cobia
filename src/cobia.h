@@ -21,16 +21,17 @@ extern int          TOTAL_VM_COUNT;
 extern int          TOTAL_NET_COUNT;
 
 static struct option options[] = {
-  {"help",              no_argument,            0, 'h'},
-  {"version",           no_argument,            0, 'v'},
-  {"domain",            required_argument,      0, 'd'},
-  {"list",              required_argument,      0, 'l'},
-  {"network",           required_argument,      0, 'n'},
-  {"source",            required_argument,      0, 's'},
-  {"target",            required_argument,      0, 't'},
-  {0,                   0,                      0,  0 }
+  {"help",          no_argument,            0, 'h'},
+  {"version",       no_argument,            0, 'v'},
+  {"domain",        required_argument,      0, 'd'},
+  {"list",          required_argument,      0, 'l'},
+  {"network",       required_argument,      0, 'n'},
+  {0,               0,                      0,  0 }
 };
 
 char* get_val(keyval_t pair[MAXSET], const char* keyname);
+
+void exec_cmd(virConnectPtr conn, const char* arg,
+        const char* target, void (*cmdf)(virConnectPtr c, const char* t));
 
 int argHandle(virConnectPtr conn, int argc, char* argv[]);
