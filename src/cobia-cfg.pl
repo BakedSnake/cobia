@@ -157,13 +157,22 @@ sub write_vm_yaml {
         boot        => $VMConfig::domain_settings{boot},
         cpu         => $VMConfig::domain_settings{cpu},
         devices     => {
-            cd      => $VMConfig::domain_settings{cd},
-            disk    => {
-                source  => $VMConfig::domain_settings{disk},
-                size    => $VMConfig::domain_settings{disksize}
+            disks    => {
+                0 => {
+                    source  => $VMConfig::domain_settings{disk},
+                    size    => $VMConfig::domain_settings{disksize},
+                    type    => "hdd"
+                },
+                1 => {
+                    source  => $VMConfig::domain_settings{cd},
+                    type    => "cd"
+                },
             },
             graphics=> $VMConfig::domain_settings{graphics},
-            net     => $VMConfig::domain_settings{net},
+            net     => {
+                source => $VMConfig::domain_settings{net_source},
+                model => $VMConfig::domain_settings{net_model},
+            },
             video   => {
                 driver => $VMConfig::domain_settings{video_driver},
                 model => $VMConfig::domain_settings{video_model},
