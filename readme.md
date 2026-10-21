@@ -19,27 +19,14 @@ $ make uninstall
 $ make clean
 ```
 
-#### Configuration
+#### Global Configuration
 Can be configured on **~/.config/cobia/cobia.conf**.
 ```vimwiki
-- vms_dir -> Directory to install virtual machines
-- user -> Name of  VM user that will be created on install
+- images  -> List of cloud image urls for download
 - ssh_key -> Full path to your chosen ssh .pub key
+- user    -> Name of  VM user that will be created on install
+- vms_dir -> Directory to install virtual machines
 ```
-
-Default values for vm install.
-```yaml
-- name: Default Settings
-  arch: "x86_64"
-  boot: "uefi"
-  cpu: "2"
-  graphics: "spice"
-  model: "virtio"
-  net: "default"
-  ram: "2048"
-```
-
-Note: These options assume you have a virtual network named default, and that it is enabled.
 
 #### Usage
 
@@ -121,3 +108,33 @@ $ cobia -d delete <domain name>
 $ cobia -l networks
 ```
 
+**Show network info:**
+```bash
+$ cobia -n info <net name>
+```
+
+**Create network:**
+Creating a network can be done via a network yaml configuration file.
+```yaml
+---
+network:
+  name: new
+  forward: nat
+  bridge: virbr123
+  ip:
+    address: 192.168.123.1
+    netmask: 255.255.255.0
+    dhcp:
+      range:
+        start: 192.168.123.2
+        end: 192.168.123.254
+```
+
+```bash
+$ cobia -n create /path/to/net/file.yml
+```
+
+**Delete network:**
+```bash
+$ cobia -n delete <net name>
+```
