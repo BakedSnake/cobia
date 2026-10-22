@@ -74,7 +74,7 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                 if (strcmp(optarg, "info") == 0)
                     exec_cmd(conn, optarg, argv[argc-1], show_vm_info);
 
-                if (strcmp(optarg, "xml") == 0)
+                if (strcmp(optarg, "xml") == 0) // for debug purposes only
                     exec_cmd(conn, optarg, argv[argc-1], show_domain_xml);
 
                 if (strcmp(optarg, "start") == 0)
@@ -102,6 +102,12 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                 if (strcmp(optarg, "info") == 0)
                     exec_cmd(conn, optarg, argv[argc-1], show_network_info);
 
+                if (strcmp(optarg, "start") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], start_network);
+
+                if (strcmp(optarg, "stop") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], stop_network);
+
                 if (strcmp(optarg, "delete") == 0)
                     exec_cmd(conn, optarg, argv[argc-1], delete_network);
 
@@ -109,7 +115,8 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                     exec_cmd(conn, optarg, argv[argc-1], show_dhcp_leases);
                 break;
             case 'v':
-                // TODO
+                // TODO:
+                fprintf(stdout, "version: 0.0.0\n");
             case '?':
                 default:
                 break;

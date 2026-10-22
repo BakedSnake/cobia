@@ -1,3 +1,4 @@
+#include <libvirt/libvirt.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -45,6 +46,26 @@ void delete_network(virConnectPtr conn, const char *name)
     if (net != NULL) {
         virNetworkUndefine(net);
         fprintf(stdout, "Network %s was deleted\n", virNetworkGetName(net));
+    }
+}
+
+void start_network(virConnectPtr conn, const char *name)
+{
+    virNetworkPtr net = get_network(conn, name);
+    if (net != NULL) {
+        virNetworkCreate(net);
+    } else {
+        fprintf(stderr, "Could not start network\n");
+    }
+}
+
+void stop_network(virConnectPtr conn, const char *name)
+{
+    virNetworkPtr net = get_network(conn, name);
+    if (net != NULL) {
+        virNetworkDestroy(net);
+    } else {
+        fprintf(stderr, "Could not stop network\n");
     }
 }
 
