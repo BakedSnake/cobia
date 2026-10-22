@@ -268,5 +268,15 @@ void show_network_info(virConnectPtr conn, const char *name)
                 xpath_get(doc, "/network/ip/dhcp/range/@end"));
     }
 
+    virNetworkPtr net = get_network(conn, name);
+    if (net != NULL) {
+        int state = virNetworkIsActive(net);
+        if (state) {
+            fprintf(stdout, "  State: Active\n");
+        } else {
+            fprintf(stdout, "  State: Inactive\n");
+        }
+    }
+
     return;
 }
