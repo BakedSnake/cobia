@@ -104,6 +104,9 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
 
                 if (strcmp(optarg, "delete") == 0)
                     exec_cmd(conn, optarg, argv[argc-1], delete_network);
+
+                if (strcmp(optarg, "leases") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], show_dhcp_leases);
                 break;
             case 'v':
                 // TODO

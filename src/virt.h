@@ -30,4 +30,6 @@ void create_network(virConnectPtr conn, const char *name);
 
 void delete_network(virConnectPtr conn, const char *name);
 
+void show_dhcp_leases(virConnectPtr conn, const char* name);
+
 char* get_network_xml(virConnectPtr conn, const char *name);

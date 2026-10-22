@@ -6,6 +6,28 @@
 #include "xml.h"
 #include "yaml.h"
 
+void show_dhcp_leases(virConnectPtr conn, const char* name)
+{
+    virNetworkDHCPLeasePtr *leases = NULL;
+    virNetworkPtr net = get_network(conn, name);
+
+    if (virNetworkGetDHCPLeases(net, NULL, &leases, 0) >= 0) {
+        fprintf(stdout, "%-20s %-22s %-24s\n", "Host", "Ip", "Expiry");
+        for (size_t i = 0; i < 60; ++i) {fputc('-', stdout);}
+        fprintf(stdout, "\n");
+
+        for (size_t i = 0; leases[i] != NULL; ++i) {
+            fprintf(stdout, "%-20s %-22s %-24d\n",
+                    leases[i]->hostname ? leases[i]->hostname : "( no hostname )",
+                    leases[i]->ipaddr ? leases[i]->ipaddr : "( no ip )",
+                    (int)leases[i]->expirytime ? (int)leases[i]->expirytime : 0);
+            virNetworkDHCPLeaseFree(leases[i]);
+        }
+
+        free(leases);
+    }
+}
+
 void create_network(virConnectPtr conn, const char *name)
 {
     parse_yaml(name);
