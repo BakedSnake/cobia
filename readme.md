@@ -1,7 +1,7 @@
-### Cobia :: Virtual Machine Manager
+## Cobia :: Virtual Machine Manager
 Quickly whip up a Cloud OS virtual machine with qemu and libvirt.
 
-#### Dependencies
+### Dependencies
 - qemu
 - libvirt
 - mkisofs (cdr-tools)
@@ -10,7 +10,7 @@ Quickly whip up a Cloud OS virtual machine with qemu and libvirt.
 - libwww-curl-perl
 - libyaml-tiny-perl
 
-#### Install
+### Install
 Default location is **/usr/local/bin**.
 ```bash
 $ make
@@ -19,7 +19,7 @@ $ make uninstall
 $ make clean
 ```
 
-#### Global Configuration
+### Global Configuration
 Can be configured on **~/.config/cobia/cobia.conf**.
 ```vimwiki
 - images  -> List of cloud image urls for download
@@ -28,7 +28,7 @@ Can be configured on **~/.config/cobia/cobia.conf**.
 - vms_dir -> Directory to install virtual machines
 ```
 
-#### Usage
+### Usage
 
 **Bootstrap domain configuration:**
 ```bash
@@ -132,6 +132,16 @@ network:
 
 ```bash
 $ cobia -n create /path/to/net/file.yml
+```
+
+**Start network:**
+```bash
+$ cobia -n start <net name>
+```
+
+**Stop network:**
+```bash
+$ cobia -n stop <net name>
 ```
 
 **Delete network:**
