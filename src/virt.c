@@ -32,7 +32,7 @@ void quiet_exit_console(void *opaque, virErrorPtr err) {
 void *console_reader(void *op)
 {
     int n;
-    char buf[4096];
+    char buf[CONBUF_SIZE];
     Conctx *ctx = op;
     while(!ctx->done) {
         n = virStreamRecv(ctx->stream, buf, sizeof(buf));
@@ -299,34 +299,28 @@ void show_domains(virConnectPtr conn)
     }
 }
 
-void show_vm_info(virConnectPtr conn, const char *name)
+void show_domain_info(virConnectPtr conn, const char *name)
 {
-    virDomainPtr *doms = get_all_domains(conn);
-    if (doms != NULL) {
+    virDomainPtr dom = get_domain(conn, name);
+    if (dom != NULL) {
+        virDomainInfo dm;
         fprintf(stdout, "%s:\n", name);
-        for (int i = 0; i < TOTAL_VM_COUNT; ++i) {
-            virDomainPtr dom = doms[i];
-            if (dom != NULL && strcmp(virDomainGetName(dom), name) == 0) {
-                virDomainInfo dm;
-                if (virDomainGetInfo(dom, &dm) == 0) {
-                    fprintf(stdout, "  State: %s\n  Max Memory: %lu\n  CPU nr: %d\n",
-                            dm.state == 1 ? "Running" : "Stopped", dm.maxMem, dm.nrVirtCpu);
-                }
+        if (virDomainGetInfo(dom, &dm) == 0) {
+            fprintf(stdout, "  State: %s\n  Max Memory: %lu\n  CPU nr: %d\n",
+                    dm.state == 1 ? "Running" : "Stopped", dm.maxMem, dm.nrVirtCpu);
+        }
 
-                if (dm.state == 1) {
-                    virDomainInterfacePtr *ifaces = NULL;
-                    int nc = virDomainInterfaceAddresses(dom, &ifaces, VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_LEASE, 0);
-                    for (int i = 0; i < nc; ++i) {
-                        for (size_t j = 0; j < ifaces[i]->naddrs; ++j) {
-                            fprintf(stdout, "  IP Address: %s\n", ifaces[i]->addrs[j].addr);
-                        }
-                    }
+        if (dm.state == 1) {
+            virDomainInterfacePtr *ifaces = NULL;
+            int nc = virDomainInterfaceAddresses(dom, &ifaces, VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_LEASE, 0);
+            for (int i = 0; i < nc; ++i) {
+                for (size_t j = 0; j < ifaces[i]->naddrs; ++j) {
+                    fprintf(stdout, "  IP Address: %s\n", ifaces[i]->addrs[j].addr);
                 }
             }
-
-
-            virDomainFree(dom);
         }
+
+        virDomainFree(dom);
     }
 }
 

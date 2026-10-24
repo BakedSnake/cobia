@@ -1,6 +1,8 @@
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 
+#define CONBUF_SIZE 4096
+
 typedef struct {
     virStreamPtr stream;
     volatile int done;
@@ -32,7 +34,7 @@ void show_domain_xml(virConnectPtr conn, const char *name);
 
 void show_domains(virConnectPtr conn);
 
-void show_vm_info(virConnectPtr conn, const char *name);
+void show_domain_info(virConnectPtr conn, const char *name);
 
 void show_networks(virConnectPtr conn);
 

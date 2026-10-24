@@ -72,7 +72,7 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                     exec_cmd(conn, optarg, argv[argc-1], create_domain);
 
                 if (strcmp(optarg, "info") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], show_vm_info);
+                    exec_cmd(conn, optarg, argv[argc-1], show_domain_info);
 
                 if (strcmp(optarg, "xml") == 0) // for debug purposes only
                     exec_cmd(conn, optarg, argv[argc-1], show_domain_xml);
