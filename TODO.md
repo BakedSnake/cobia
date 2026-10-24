@@ -30,4 +30,5 @@
   - [ ] YAML validation
 - [ ] Cache OS Cloud images
 - [x] Flag rework/refactor
+- [x] Implement shell connection
 

@@ -85,6 +85,9 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
 
                 if (strcmp(optarg, "delete") == 0)
                     exec_cmd(conn, optarg, argv[argc-1], delete_domain);
+
+                if (strcmp(optarg, "shell") == 0)
+                    exec_cmd(conn, optarg, argv[argc-1], start_console);
                 break;
             case 'h':
                 // TODO
