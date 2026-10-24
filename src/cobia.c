@@ -6,10 +6,34 @@
 #include "xml.h"
 #include "virt.h"
 
-keyval_t settings[MAXSET]   = {0};
-
 int TOTAL_VM_COUNT          = 0;
 int TOTAL_NET_COUNT         = 0;
+
+keyval_t settings[MAXSET]   = {0};
+
+static Command_Single l_cmds[] = {
+    { "domains",    show_domains        },
+    { "networks",   show_networks       },
+};
+
+static Command dom_cmds[] = {
+    {"create",      create_domain       },
+    {"info",        show_domain_info    },
+    {"xml",         show_domain_xml     },
+    {"start",       start_domain        },
+    {"stop",        stop_domain         },
+    {"delete",      delete_domain       },
+    {"shell",       start_console       },
+};
+
+static Command net_cmds[] = {
+    {"create",      create_network      },
+    {"info",        show_network_info   },
+    {"start",       start_network       },
+    {"stop",        stop_network        },
+    {"delete",      delete_network      },
+    {"leases",      show_dhcp_leases    },
+};
 
 char* get_val(keyval_t pair[MAXSET], const char* keyname)
 {
@@ -65,61 +89,38 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
 {
     int opt;
     const char * arg_str = "hvd:l:n:";
+    size_t count = sizeof(dom_cmds)/sizeof(dom_cmds[0]);
     while ((opt = getopt_long(argc, argv, arg_str, options, NULL)) != -1) {
         switch (opt) {
             case 'd':
-                if (strcmp(optarg, "create") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], create_domain);
-
-                if (strcmp(optarg, "info") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], show_domain_info);
-
-                if (strcmp(optarg, "xml") == 0) // for debug purposes only
-                    exec_cmd(conn, optarg, argv[argc-1], show_domain_xml);
-
-                if (strcmp(optarg, "start") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], start_domain);
-
-                if (strcmp(optarg, "stop") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], stop_domain);
-
-                if (strcmp(optarg, "delete") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], delete_domain);
-
-                if (strcmp(optarg, "shell") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], start_console);
+                for (size_t i = 0; i < count; ++i) {
+                    if (strcmp(optarg, dom_cmds[i].name) == 0) {
+                        exec_cmd(conn, optarg, argv[argc-1], dom_cmds[i].cmd);
+                        break;
+                    }
+                }
                 break;
             case 'h':
                 // TODO
             case 'l':
-                if (strcmp(optarg, "domains") == 0)
-                    show_domains(conn);
-
-                if (strcmp(optarg, "networks") == 0)
-                    show_networks(conn);
+                for (size_t i = 0; i < count; ++i) {
+                    if (strcmp(optarg, l_cmds[i].name) == 0) {
+                        l_cmds[i].cmd(conn);
+                        break;
+                    }
+                }
                 break;
             case 'n':
-                if (strcmp(optarg, "create") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], create_network);
-
-                if (strcmp(optarg, "info") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], show_network_info);
-
-                if (strcmp(optarg, "start") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], start_network);
-
-                if (strcmp(optarg, "stop") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], stop_network);
-
-                if (strcmp(optarg, "delete") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], delete_network);
-
-                if (strcmp(optarg, "leases") == 0)
-                    exec_cmd(conn, optarg, argv[argc-1], show_dhcp_leases);
+                for (size_t i = 0; i < count; ++i) {
+                    if (strcmp(optarg, net_cmds[i].name) == 0) {
+                        exec_cmd(conn, optarg, argv[argc-1], net_cmds[i].cmd);
+                        break;
+                    }
+                }
                 break;
             case 'v':
-                // TODO:
                 fprintf(stdout, "version: 0.0.0\n");
+                break;
             case '?':
                 default:
                 break;
