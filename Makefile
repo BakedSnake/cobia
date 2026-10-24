@@ -5,7 +5,7 @@ PERL_INSTALL_DIR=$(PERL_PREFIX)/Cobia
 CC = clang
 CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -Wunused-value -I/usr/include/libxml2
 LDFLAGS = -lvirt -lxml2 -lyaml -lpthread
-SOURCES = src/cobia.c src/xml.c src/virt.c src/yaml.c
+SOURCES = src/cobia.c src/xml.c src/virt.c src/yaml.c src/console.c
 OBJECTS = $(SOURCES:.c=.o)
 TARGET = cobia
 

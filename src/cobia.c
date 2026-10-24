@@ -5,6 +5,7 @@
 #include "cobia.h"
 #include "xml.h"
 #include "virt.h"
+#include "console.h"
 
 int TOTAL_VM_COUNT          = 0;
 int TOTAL_NET_COUNT         = 0;
