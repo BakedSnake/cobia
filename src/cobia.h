@@ -9,6 +9,16 @@
 #define D_ATTSIZE   32
 
 typedef struct {
+    char *name;
+    void (*cmd)(virConnectPtr c, const char *t);
+} Command;
+
+typedef struct {
+    char *name;
+    void (*cmd)(virConnectPtr c);
+} Command_Single;
+
+typedef struct {
     char *key;
     char *val;
 } keyval_t;
@@ -29,9 +39,9 @@ static struct option options[] = {
   {0,               0,                      0,  0 }
 };
 
-char* get_val(keyval_t pair[MAXSET], const char* keyname);
+char* get_val(keyval_t pair[MAXSET], const char *keyname);
 
-void exec_cmd(virConnectPtr conn, const char* arg,
-        const char* target, void (*cmdf)(virConnectPtr c, const char* t));
+void exec_cmd(virConnectPtr conn, const char *arg,
+        const char *target, void (*cmdf)(virConnectPtr c, const char *t));
 
-int argHandle(virConnectPtr conn, int argc, char* argv[]);
+int argHandle(virConnectPtr conn, int argc, char *argv[]);
