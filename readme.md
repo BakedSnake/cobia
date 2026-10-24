@@ -103,6 +103,11 @@ Note: The correct OS name can be found via: `os-query os` command.
 $ cobia -d delete <domain name>
 ```
 
+**Connect to console:**
+```bash
+$ cobia -d shell <domain name>
+```
+
 **List networks:**
 ```bash
 $ cobia -l networks
