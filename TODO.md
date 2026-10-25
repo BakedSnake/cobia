@@ -5,11 +5,15 @@
   - [x] Listing domains
   - [x] Getting domain info
   - [x] Creating a domain
-  - [x] Deliging a domain
+  - [x] Deleting a domain
 - [ ] Manage "Hardware" ( controllers, etc. )
   - [ ] Add new hardware
   - [ ] Remove hardware
   - [ ] Edit hardware
+- [ ] Manage Storage
+  - [ ] Resize a disk
+  - [ ] Add storage
+  - [ ] Remove storage
 - [ ] Manage Networks
   - [x] List networks
   - [x] Get network info
@@ -17,18 +21,20 @@
   - [ ] Bootstrap network yaml
   - [x] Delete a network
   - [x] start / stop networks
-- [ ] Manage Storage
-  - [ ] Resize a disk
-  - [ ] Add storage
-  - [ ] Remove storage
 - [ ] Add TUI
+  - [ ] Main page ( domain list )
+  - [ ] Domain info page
+  - [ ] Network page
 - [ ] Implement management via yaml files
   - [x] Parse yaml into xml and use it to create domain
   - [x] YAML config file ( Perl )
   - [x] Create domain yaml ( Perl )
+  - [ ] Dynamic yaml <-> xml conversion
   - [ ] XML validation
   - [ ] YAML validation
 - [ ] Cache OS Cloud images
 - [x] Flag rework/refactor
 - [x] Implement shell connection
+- [ ] Embed Perl cofiguration/bootstrap
+- [ ] Implement service
 
