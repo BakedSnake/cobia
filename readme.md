@@ -9,6 +9,7 @@ Quickly whip up a Cloud OS virtual machine with qemu and libvirt.
 - libyaml
 - libwww-curl-perl
 - libyaml-tiny-perl
+- osinfo-db-tools ( optional )
 
 ### Install
 Default location is **/usr/local/bin**.
