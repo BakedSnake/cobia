@@ -3,9 +3,9 @@ INSTALL_DIR=$(PREFIX)/bin
 PERL_PREFIX=/usr/lib64/perl5/5.44
 PERL_INSTALL_DIR=$(PERL_PREFIX)/Cobia
 CC = clang
-CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -Wunused-value -I/usr/include/libxml2
-LDFLAGS = -lvirt -lxml2 -lyaml -lpthread
-SOURCES = src/cobia.c src/xml.c src/virt.c src/yaml.c src/console.c
+CFLAGS = -std=gnu99 -Wall -Wextra -Wpedantic -Wunused-value -I/usr/include/libxml2 -I/usr/lib64/perl5/5.44/x86_64-linux-thread-multi/CORE
+LDFLAGS = -lvirt -lxml2 -lyaml -lpthread -lperl
+SOURCES = src/cobia.c src/xml.c src/virt.c src/yaml.c src/console.c src/cfg.c
 OBJECTS = $(SOURCES:.c=.o)
 TARGET = cobia
 
