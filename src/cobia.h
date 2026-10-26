@@ -36,6 +36,7 @@ static struct option options[] = {
   {"domain",        required_argument,      0, 'd'},
   {"list",          required_argument,      0, 'l'},
   {"network",       required_argument,      0, 'n'},
+  {"configure",     required_argument,      0, 'c'},
   {0,               0,                      0,  0 }
 };
 

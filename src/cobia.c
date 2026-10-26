@@ -1,3 +1,4 @@
+#define _LARGEFILE64_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +7,7 @@
 #include "xml.h"
 #include "virt.h"
 #include "console.h"
+#include "cfg.h"
 
 int TOTAL_VM_COUNT          = 0;
 int TOTAL_NET_COUNT         = 0;
@@ -89,10 +91,14 @@ int main(int argc, char **argv) {
 int argHandle(virConnectPtr conn, int argc, char* argv[])
 {
     int opt;
-    const char * arg_str = "hvd:l:n:";
+    const char * arg_str = "hvd:l:n:c:";
     size_t count = sizeof(dom_cmds)/sizeof(dom_cmds[0]);
     while ((opt = getopt_long(argc, argv, arg_str, options, NULL)) != -1) {
         switch (opt) {
+            case 'c':
+                fprintf(stdout, "%s\n", optarg);
+                configure_network(optarg);
+                break;
             case 'd':
                 for (size_t i = 0; i < count; ++i) {
                     if (strcmp(optarg, dom_cmds[i].name) == 0) {
@@ -120,7 +126,7 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                 }
                 break;
             case 'v':
-                fprintf(stdout, "version: 0.0.0\n");
+                fprintf(stdout, "Cobia version: 0.0.0\n");
                 break;
             case '?':
                 default:
