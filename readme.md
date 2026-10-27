@@ -31,10 +31,15 @@ Can be configured on **~/.config/cobia/cobia.conf**.
 
 ### Usage
 
+**Configuring Host Network:**
+```bash
+$ cobia -c netconf <inferface name>
+```
+
 **Bootstrap domain configuration:**
 ```bash
-$ cobia-cfg --interactive --apply
-$ cobia-cfg --os=2 --os-name="debian13" --apply # Create Debian domain yaml file
+$ cobia -c bootstrap --interactive --apply
+$ cobia -c bootstrap --os=2 --name="debian13" --apply # Create Debian domain yaml file
 ```
 
 ```yaml
@@ -94,7 +99,7 @@ $ cobia -d stop <domain name>
 
 **Create ( define ) a domain:**
 ```bash
-$ cobia-cfg --os=2 --os-name="debina13" --create # Like "--apply", but immediately creates the domain
+$ cobia -c bootstrap --os=2 --name="debian13" --os-name="debina13" --create # Like "--apply", but immediately creates the domain
 $ cobia -d create /path/to/domain/file.yml
 ```
 Note: The correct OS name can be found via: `os-query os` command.

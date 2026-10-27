@@ -35,6 +35,6 @@
 - [ ] Cache OS Cloud images
 - [x] Flag rework/refactor
 - [x] Implement shell connection
-- [ ] Embed Perl cofiguration/bootstrap
+- [x] Embed Perl cofiguration/bootstrap
 - [ ] Implement service
 
