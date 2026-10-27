@@ -20,6 +20,7 @@ static Command_Single l_cmds[] = {
 };
 
 static Command_Config cfg_cmds[] = {
+    { "bootstrap",  bootstrap_domain    },
     { "netconf",    configure_network   },
 };
 
@@ -95,14 +96,15 @@ int main(int argc, char **argv) {
 int argHandle(virConnectPtr conn, int argc, char* argv[])
 {
     int opt;
-    const char * arg_str = "hvd:l:n:c:";
+    opterr = 0; /* silent options */
+    const char *arg_str = "hvd:l:n:c:";
     size_t count = sizeof(dom_cmds)/sizeof(dom_cmds[0]);
     while ((opt = getopt_long(argc, argv, arg_str, options, NULL)) != -1) {
         switch (opt) {
             case 'c':
                 for (size_t i = 0; i < count; ++i) {
                     if (strcmp(optarg, cfg_cmds[i].name) == 0) {
-                        cfg_cmds[i].cmd(optarg);
+                        cfg_cmds[i].cmd(argc, argv);
                         break;
                     }
                 }

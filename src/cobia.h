@@ -20,7 +20,7 @@ typedef struct {
 
 typedef struct {
     char *name;
-    int (*cmd)(char *name);
+    int (*cmd)(int argc, char **argv);
 } Command_Config;
 
 typedef struct {
