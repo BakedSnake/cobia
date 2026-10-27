@@ -194,7 +194,7 @@ sub write_vm_yaml {
 
 sub create_virtual_machine {
     print(STDOUT "\n>>> Installing virtual machine.\n");
-    my $virt_str = "cobia -c $vm_env/$VMConfig::domain_settings{name}.yml |";
+    my $virt_str = "cobia -d create $vm_env/$VMConfig::domain_settings{name}.yml |";
 
     open VIRT, $virt_str or die "$!";
     while (my $line= <VIRT>) {
@@ -202,25 +202,6 @@ sub create_virtual_machine {
     }
 
     close VIRT;
-}
-
-sub get_ip_address {
-    print(STDOUT "\n>>> Waiting for network...\n\n");
-    my $found = 0;
-    while (!$found) {
-        sleep 5;
-        open IP, "cobia -i $VMConfig::domain_settings{name} |" or die "$!";
-        while (my $line = <IP>) {
-            if ($line =~ m/IP/) {
-                print(STDOUT "$line\n");
-                $found = 1;
-            }
-        }
-
-        close IP;
-    }
-
-    print(STDOUT ">>> Done!\n");
 }
 
 sub main {
@@ -244,7 +225,6 @@ sub main {
     if ($create) {
         write_vm_yaml();
         create_virtual_machine();
-        get_ip_address();
     }
 
     return 1;
