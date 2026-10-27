@@ -19,6 +19,11 @@ typedef struct {
 } Command_Single;
 
 typedef struct {
+    char *name;
+    int (*cmd)(char *name);
+} Command_Config;
+
+typedef struct {
     char *key;
     char *val;
 } keyval_t;

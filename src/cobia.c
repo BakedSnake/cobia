@@ -19,6 +19,10 @@ static Command_Single l_cmds[] = {
     { "networks",   show_networks       },
 };
 
+static Command_Config cfg_cmds[] = {
+    { "netconf",    configure_network   },
+};
+
 static Command dom_cmds[] = {
     {"create",      create_domain       },
     {"info",        show_domain_info    },
@@ -96,9 +100,12 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
     while ((opt = getopt_long(argc, argv, arg_str, options, NULL)) != -1) {
         switch (opt) {
             case 'c':
-                fprintf(stdout, "%s\n", optarg);
-                configure_network(optarg);
-                break;
+                for (size_t i = 0; i < count; ++i) {
+                    if (strcmp(optarg, cfg_cmds[i].name) == 0) {
+                        cfg_cmds[i].cmd(optarg);
+                        break;
+                    }
+                }
             case 'd':
                 for (size_t i = 0; i < count; ++i) {
                     if (strcmp(optarg, dom_cmds[i].name) == 0) {
