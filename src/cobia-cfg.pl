@@ -6,6 +6,7 @@ use warnings;
 use Getopt::Long;
 use POSIX qw(setuid waitpid);
 use File::Path qw( make_path );
+use File::Copy;
 
 use Cobia::VMConfig;
 use Cobia::CloudInit;
@@ -122,7 +123,8 @@ sub create_vm_disk {
     $disksize = $disksize."G";
     
     print(STDOUT ">>> Resizing disk.\n");
-    open QEMU, "qemu-img create -b os_img.qcow2 -f qcow2 -F qcow2 \"$diskname\" $disksize |" or die "$!";
+    copy("$VMConfig::cloud_image_dir/$VMConfig::cloud_image_name", "./") or die "$!";
+    open QEMU, "qemu-img create -b $VMConfig::cloud_image_name -f qcow2 -F qcow2 \"$diskname\" $disksize |" or die "$!";
     while (my $line= <QEMU>) {
         my @diskopts = split(" ", $line);
         print(STDOUT " $diskopts[0] $diskopts[1]\n");
@@ -136,6 +138,7 @@ sub create_vm_disk {
     print(STDOUT "\n>>> Image file created successfully.\n");
     print(STDOUT ">>> Updating permissions.\n");
     chown($uid, $gid, $diskname);
+    unlink("$VMConfig::cloud_image_name") or die "$!";
 }
 
 sub write_vm_yaml {
@@ -209,7 +212,7 @@ sub main {
 
     ## Get Cloud image
     chdir($vm_env);
-    IMGDownload::get_disk_image();
+    IMGDownload::get_disk_image() unless ( -f "$VMConfig::cloud_image_dir/$VMConfig::cloud_image_name");
     create_vm_disk();
     
     ## Cloud Init Config

@@ -32,7 +32,7 @@
   - [ ] Dynamic yaml <-> xml conversion
   - [ ] XML validation
   - [ ] YAML validation
-- [ ] Cache OS Cloud images
+- [x] Cache OS Cloud images
 - [x] Flag rework/refactor
 - [x] Implement shell connection
 - [x] Embed Perl cofiguration/bootstrap
