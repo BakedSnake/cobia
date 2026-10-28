@@ -11,6 +11,8 @@ our $config_file = "$ENV{HOME}/.config/cobia/cobia.yml";
 
 our @os_img_urls;
 our @os_img_names;
+our $cloud_image_dir;
+our $cloud_image_name;
 our $vm_image_choice = 1;
 
 my $yaml = YAML::Tiny->read("$config_file");
@@ -59,6 +61,8 @@ sub parse_config {
     $domain_settings{ssh_key}     = $cfg->[1]->{ssh_key};
     $domain_settings{user}        = $cfg->[1]->{user};
     $domain_settings{vm_dir}      = $cfg->[0]->{vm_dir};
+
+    $cloud_image_dir              = $cfg->[2]->{directory};
 }
 
 sub get_os_images_urls {

@@ -29,6 +29,11 @@ sub select_image {
     } else {
         print(STDOUT "\n  Your choice: $VMConfig::vm_image_choice\n\n");
     }
+
+    my $url = $VMConfig::os_img_urls[$VMConfig::vm_image_choice];
+    my @url_parts = split("/", $url);
+    my $url_size = scalar @url_parts;
+    $VMConfig::cloud_image_name = $url_parts[$url_size-1];
 }
 
 sub get_disk_image {
@@ -52,7 +57,7 @@ sub get_disk_image {
         print(STDOUT "\n>>> Transfer Ok!\n");
         print(STDOUT ">>> Received response: $rc\n\n");
     
-        open IMG, "> os_img.qcow2" or die "Could not open file: $!";
+        open IMG, "> $VMConfig::cloud_image_dir/$VMConfig::cloud_image_name" or die "Could not open file: $!";
         print(IMG "$res");
         close IMG;
     } else {
