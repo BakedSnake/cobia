@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -160,7 +161,10 @@ void show_domains(virConnectPtr conn)
             if (doms[i]) {
                 const char *name = virDomainGetName(doms[i]);
                 int id = virDomainGetID(doms[i]);
-                fprintf(stdout, "  %d - %s\n", id, name);
+
+                char id_str[32];
+                snprintf(id_str, 32, "%d", id);
+                fprintf(stdout, "  %s - %s\n", id == -1 ? "*" : id_str, name);
             }
 
             virDomainFree(doms[i]);
