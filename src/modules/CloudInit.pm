@@ -24,12 +24,15 @@ sub configure {
     open USERD, "> user-data" or die "$!";
     print(USERD "#cloud-config
 
+autoinstall:
+  packages:
+  - bash
+
 users:
   - name: $VMConfig::domain_settings{user}
     lock_passwd: False
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
-    groups: sudo
-    shell: /bin/bash
+    groups: sudo, wheel
     ssh_authorized_keys:
       - $u_key 
 
@@ -44,7 +47,7 @@ ssh_pwauth: True
 
 sub create_cidata {
     open ISO, "mkisofs -output cidata.iso -V cidata -r -J user-data meta-data |" or die "$!";
-    while (my $line= <ISO>) {
+    while (my $line = <ISO>) {
         print STDOUT "  $line";
     }
     close ISO;

@@ -138,7 +138,6 @@ sub create_vm_disk {
     print(STDOUT "\n>>> Image file created successfully.\n");
     print(STDOUT ">>> Updating permissions.\n");
     chown($uid, $gid, $diskname);
-    unlink("$VMConfig::cloud_image_name") or die "$!";
 }
 
 sub write_vm_yaml {
