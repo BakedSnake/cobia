@@ -117,7 +117,14 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                 }
                 break;
             case 'h':
-                // TODO
+                fprintf(stdout, "Usage: cobia [options...] <target>\n");
+                fprintf(stdout, " -c, --configure <command>     Bootstrap or configure domains\n");
+                fprintf(stdout, " -d, --domain <command>        Run a domain command\n");
+                fprintf(stdout, " -l, --list <target>           List domains or networks\n");
+                fprintf(stdout, " -n, --network <command>       Run a network command\n");
+                fprintf(stdout, " -v, --version                 Show version\n");
+                fprintf(stdout, " -h, --help                    Show usage\n");
+                break;
             case 'l':
                 for (size_t i = 0; i < count; ++i) {
                     if (strcmp(optarg, l_cmds[i].name) == 0) {
