@@ -48,6 +48,69 @@ char *xpath_get(xmlDocPtr doc, const char *path)
     return result;
 }
 
+xmlNodePtr get_child(xmlNodePtr parent, const char *name)
+{
+    for (xmlNodePtr current = parent->children; current; current = current->next) {
+        if (current->type == XML_ELEMENT_NODE &&
+                xmlStrcmp(current->name, BAD_CAST name) == 0)
+            return current;
+    }
+
+    return NULL;
+}
+
+xmlNodePtr walk_path(xmlNodePtr root, const char *path, const char *val)
+{
+    char buf[KVSIZE * MAXDEPTH];
+    snprintf(buf, sizeof(buf), "%s", path);
+
+    xmlNodePtr current = root;
+    char *tok = strtok(buf, ".");
+    if (tok && xmlStrcmp(root->name, BAD_CAST tok) == 0)
+        tok = strtok(NULL, ".");
+
+    for (; tok; tok = strtok(NULL, ".")) {
+        if (tok[0] == '@') {
+            xmlSetProp(current, BAD_CAST tok+1, BAD_CAST val);
+            return NULL;
+        }
+
+        if (tok[0] == '#') return current;
+
+        xmlNodePtr next = get_child(current, tok);
+        if (!next)
+            next = xmlNewChild(current, NULL, BAD_CAST tok, NULL);
+
+        if (!next)
+            return NULL;
+
+        current = next;
+    }
+
+    return current;
+}
+
+xmlDocPtr convert_to_xml(void)
+{
+    xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
+    xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "domain");
+    xmlDocSetRootElement(doc, root);
+
+    for (int i = 0; i < TOTAL_KEY_COUNT; ++i) {
+        xmlNodePtr leaf = walk_path(root, settings[i].key, settings[i].val);
+        if (!leaf) continue;
+
+        if (leaf->children) {
+            xmlNodePtr rep = xmlNewChild(leaf->parent, NULL, leaf->name, NULL);
+            xmlNodeAddContent(rep, BAD_CAST settings[i].val);
+        } else {
+            xmlNodeAddContent(leaf, BAD_CAST settings[i].val);
+        }
+    }
+
+    return doc;
+}
+
 const char* create_network_xml(xmlBufferPtr buf)
 {
     xmlTextWriterPtr w = xmlNewTextWriterMemory(buf, 0);

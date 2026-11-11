@@ -11,6 +11,7 @@
 
 int TOTAL_VM_COUNT          = 0;
 int TOTAL_NET_COUNT         = 0;
+int TOTAL_KEY_COUNT         = 0;
 
 keyval_t settings[MAXSET]   = {0};
 

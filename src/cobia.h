@@ -34,6 +34,7 @@ extern keyval_t     net_settings[7];
 
 extern int          TOTAL_VM_COUNT;
 extern int          TOTAL_NET_COUNT;
+extern int          TOTAL_KEY_COUNT;
 
 static struct option options[] = {
   {"help",          no_argument,            0, 'h'},

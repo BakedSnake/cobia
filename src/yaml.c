@@ -6,7 +6,6 @@
 void parse_yaml(const char *filepath)
 {
     int depth = 0;
-    int key_count = 0;
     char keybuf[MAXDEPTH][KVSIZE] = {0};
     char keys[MAXKEYS][KVSIZE] = {0};
     char values[MAXKEYS][KVSIZE] = {0};
@@ -47,11 +46,11 @@ void parse_yaml(const char *filepath)
                     if (d > 0) strncat(path, ".", sizeof(path) - strlen(path) - 1);
                     strncat(path, keybuf[d], sizeof(path) - strlen(path) - 1);
                 }
-                snprintf(keys[key_count], KVSIZE, "%s", path);
+                snprintf(keys[TOTAL_KEY_COUNT], KVSIZE, "%s", path);
             } else {
-                if (key_count < MAXKEYS) {
-                    snprintf(values[key_count], KVSIZE, "%.*s", len, value);
-                    ++key_count;
+                if (TOTAL_KEY_COUNT < MAXKEYS) {
+                    snprintf(values[TOTAL_KEY_COUNT], KVSIZE, "%.*s", len, value);
+                    ++TOTAL_KEY_COUNT;
                 }
 
                 if (depth > 0)
@@ -69,7 +68,7 @@ void parse_yaml(const char *filepath)
     fclose(fp);
 
     // Assign parsed values
-    for (int i = 0; i < key_count; ++i) {
+    for (int i = 0; i < TOTAL_KEY_COUNT; ++i) {
         settings[i].key = malloc(KVSIZE);
         settings[i].val = malloc(KVSIZE);
         memcpy(settings[i].key, keys[i], KVSIZE);
