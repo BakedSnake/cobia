@@ -32,11 +32,21 @@ void show_dhcp_leases(virConnectPtr conn, const char* name)
 void create_network(virConnectPtr conn, const char *name)
 {
     parse_yaml(name);
+
     xmlBufferPtr buf = xmlBufferCreate();
     if (!buf) return;
-    const char* xml = create_network_xml(buf);
-    printf("%s\n", xml);
-    virNetworkDefineXML(conn, xml);
+
+    xmlDocPtr doc = convert_to_xml();
+    xmlNodeDump(buf, doc, xmlDocGetRootElement(doc), 0, 1);
+
+    const char *xml = strdup((char *)xmlBufferContent(buf));
+    if (xml != NULL) {
+        fprintf(stdout, "%s\n", xml);
+        virNetworkDefineXML(conn, xml);
+    }
+
+    xmlFreeDoc(doc);
+    free((void *)xml);
     xmlBufferFree(buf);
 }
 
@@ -89,6 +99,7 @@ void create_domain(virConnectPtr conn, const char *name)
 
     xmlFreeDoc(doc);
     free((void *)xml);
+    xmlBufferFree(buf);
 }
 
 void delete_domain(virConnectPtr conn, const char *name)
