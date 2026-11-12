@@ -8,28 +8,30 @@
 
 #define PLACEHOLDER BAD_CAST "__item"
 
-int get_disk_count(void)
-{
-    int count = 0;
-    for (int i = 0; i < MAXSET; ++i) {
-        char dstr[D_ATTSIZE];
-        snprintf(dstr, D_ATTSIZE, "domain.devices.disks.%d.source", i);
-
-        if (get_val(settings, dstr) != NULL) {
-            ++count;
-        } else {
-            break;
-        }
-    }
-
-    return count;
-}
-
 char* get_nvram_path(const char *name)
 {
     char *nvram = (char *)malloc(KVSIZE);
     snprintf(nvram, KVSIZE, "/var/lib/libvirt/qemu/nvram/%s_VARS.qcow2", name);
     return nvram;
+}
+
+char *xpath_get(xmlDocPtr doc, const char *path)
+{
+    char *result = (char *)malloc(KVSIZE);
+    xmlXPathContext *ctx = xmlXPathNewContext(doc);
+    xmlXPathObject *obj = xmlXPathEvalExpression((const xmlChar*)path, ctx);
+
+    if (obj && obj->nodesetval && obj->nodesetval->nodeNr > 0) {
+        xmlChar *s = xmlNodeGetContent(obj->nodesetval->nodeTab[0]);
+        if (s) {
+            strcpy(result, (char *)s);
+            xmlFree(s);
+        }
+    }
+
+    xmlXPathFreeObject(obj);
+    xmlXPathFreeContext(ctx);
+    return result;
 }
 
 int is_index(const char *str)
@@ -67,25 +69,6 @@ xmlNodePtr get_sequence_element(xmlNodePtr parent, long n)
     }
 
     return NULL;
-}
-
-char *xpath_get(xmlDocPtr doc, const char *path)
-{
-    char *result = (char *)malloc(KVSIZE);
-    xmlXPathContext *ctx = xmlXPathNewContext(doc);
-    xmlXPathObject *obj = xmlXPathEvalExpression((const xmlChar*)path, ctx);
-
-    if (obj && obj->nodesetval && obj->nodesetval->nodeNr > 0) {
-        xmlChar *s = xmlNodeGetContent(obj->nodesetval->nodeTab[0]);
-        if (s) {
-            strcpy(result, (char *)s);
-            xmlFree(s);
-        }
-    }
-
-    xmlXPathFreeObject(obj);
-    xmlXPathFreeContext(ctx);
-    return result;
 }
 
 xmlNodePtr get_child(xmlNodePtr parent, const char *name)
@@ -170,46 +153,4 @@ xmlDocPtr convert_to_xml(void)
     }
 
     return doc;
-}
-
-const char* create_network_xml(xmlBufferPtr buf)
-{
-    xmlTextWriterPtr w = xmlNewTextWriterMemory(buf, 0);
-    if (!w) {
-        fprintf(stderr, "Failed to create writer\n");
-        return NULL;
-    }
-    xmlTextWriterStartDocument(w, NULL, "UTF-8", NULL);
-        xmlTextWriterStartElement(w, BAD_CAST "network");
-
-            xmlTextWriterStartElement(w, BAD_CAST "name");
-                xmlTextWriterWriteString(w, BAD_CAST get_val(settings, "network.name"));
-            xmlTextWriterEndElement(w);
-
-            xmlTextWriterStartElement(w, BAD_CAST "forward");
-                xmlTextWriterWriteAttribute(w, BAD_CAST "mode", BAD_CAST get_val(settings, "network.forward"));
-            xmlTextWriterEndElement(w);
-
-            xmlTextWriterStartElement(w, BAD_CAST "bridge");
-                xmlTextWriterWriteAttribute(w, BAD_CAST "name", BAD_CAST get_val(settings, "network.bridge"));
-            xmlTextWriterEndElement(w);
-
-            xmlTextWriterStartElement(w, BAD_CAST "ip");
-                xmlTextWriterWriteAttribute(w, BAD_CAST "address", BAD_CAST get_val(settings, "network.ip.address"));
-                xmlTextWriterWriteAttribute(w, BAD_CAST "netmask", BAD_CAST get_val(settings, "network.ip.netmask"));
-
-                xmlTextWriterStartElement(w, BAD_CAST "dhcp");
-                    xmlTextWriterStartElement(w, BAD_CAST "range");
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "start", BAD_CAST get_val(settings, "network.ip.dhcp.range.start"));
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "end", BAD_CAST get_val(settings, "network.ip.dhcp.range.end"));
-                    xmlTextWriterEndElement(w);
-                xmlTextWriterEndElement(w);
-
-            xmlTextWriterEndElement(w);
-
-        xmlTextWriterEndElement(w); // end network
-    xmlTextWriterEndDocument(w);
-
-    const char* xml = (char *)xmlBufferContent(buf);
-    return xml;
 }
