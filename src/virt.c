@@ -73,12 +73,22 @@ void create_domain(virConnectPtr conn, const char *name)
 {
     fprintf(stdout, "%s:\n", name);
     parse_yaml(name);
+
     xmlBufferPtr buf = xmlBufferCreate();
     if (!buf) return;
-    const char* xml = create_domain_xml(buf);
-    printf("%s\n", xml);
-    virDomainDefineXML(conn, xml);
-    xmlBufferFree(buf);
+
+    xmlDocPtr doc = convert_to_xml();
+    xmlNodeDump(buf, doc, xmlDocGetRootElement(doc), 0, 1);
+
+    const char *xml = strdup((char *)xmlBufferContent(buf));
+
+    if (xml != NULL) {
+        fprintf(stdout, "%s\n", xml);
+        virDomainDefineXML(conn, xml);
+    }
+
+    xmlFreeDoc(doc);
+    free((void *)xml);
 }
 
 void delete_domain(virConnectPtr conn, const char *name)
