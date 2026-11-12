@@ -99,15 +99,26 @@ xmlNodePtr get_child(xmlNodePtr parent, const char *name)
     return NULL;
 }
 
-xmlNodePtr walk_path(xmlNodePtr root, const char *path, const char *val)
+xmlNodePtr walk_path(xmlDocPtr doc, const char *path, const char *val)
 {
     char buf[KVSIZE * MAXDEPTH];
     snprintf(buf, sizeof(buf), "%s", path);
 
-    xmlNodePtr current = root;
+    xmlNodePtr current = xmlDocGetRootElement(doc);
     char *tok = strtok(buf, ".");
-    if (tok && xmlStrcmp(root->name, BAD_CAST tok) == 0)
+
+    if (tok && !current) {
+        if (tok[0] == '@' || tok[0] == '#' || is_index(tok))
+            return NULL;
+
+        current = xmlNewNode(NULL, BAD_CAST tok);
+        if (!current) return NULL;
+
+        xmlDocSetRootElement(doc, current);
         tok = strtok(NULL, ".");
+    } else if (tok && xmlStrcmp(current->name, BAD_CAST tok) == 0) {
+        tok = strtok(NULL, ".");
+    }
 
     for (; tok; tok = strtok(NULL, ".")) {
         if (tok[0] == '@') {
@@ -145,11 +156,9 @@ xmlNodePtr walk_path(xmlNodePtr root, const char *path, const char *val)
 xmlDocPtr convert_to_xml(void)
 {
     xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
-    xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "domain");
-    xmlDocSetRootElement(doc, root);
 
     for (int i = 0; i < TOTAL_KEY_COUNT; ++i) {
-        xmlNodePtr leaf = walk_path(root, settings[i].key, settings[i].val);
+        xmlNodePtr leaf = walk_path(doc, settings[i].key, settings[i].val);
         if (!leaf) continue;
 
         if (leaf->children) {

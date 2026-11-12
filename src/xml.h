@@ -12,6 +12,6 @@ char* get_nvram_path(const char* name);
 
 xmlNodePtr get_child(xmlNodePtr parent, const char *name);
 
-xmlNodePtr walk_path(xmlNodePtr root, const char *path, const char *val);
+xmlNodePtr walk_path(xmlDocPtr doc, const char *path, const char *val);
 
 xmlDocPtr convert_to_xml(void);
