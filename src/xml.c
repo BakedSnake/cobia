@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "cobia.h"
 #include "xml.h"
+
+#define PLACEHOLDER BAD_CAST "__item"
 
 int get_disk_count(void)
 {
@@ -27,6 +30,43 @@ char* get_nvram_path(const char *name)
     char *nvram = (char *)malloc(KVSIZE);
     snprintf(nvram, KVSIZE, "/var/lib/libvirt/qemu/nvram/%s_VARS.qcow2", name);
     return nvram;
+}
+
+int is_index(const char *str)
+{
+    if (*str == '\0') return 0;
+
+    for (; *str; ++str)
+        if (!isdigit((unsigned char)*str)) return 0;
+
+    return 1;
+}
+
+xmlNodePtr get_sequence_element(xmlNodePtr parent, long n)
+{
+    long seen = 0;
+    for (xmlNodePtr current = parent->children; current; current = current->next) {
+        if (current->type != XML_ELEMENT_NODE)
+            continue;
+
+        if (seen == n)
+            return current;
+
+        ++seen;
+    }
+
+    while (seen <= n) {
+        xmlNodePtr placeholder = xmlNewChild(parent, NULL, PLACEHOLDER, NULL);
+        if (!placeholder)
+            return NULL;
+
+        if (seen == n)
+            return placeholder;
+
+        ++seen;
+    }
+
+    return NULL;
 }
 
 char *xpath_get(xmlDocPtr doc, const char *path)
@@ -77,14 +117,26 @@ xmlNodePtr walk_path(xmlNodePtr root, const char *path, const char *val)
 
         if (tok[0] == '#') return current;
 
-        xmlNodePtr next = get_child(current, tok);
-        if (!next)
-            next = xmlNewChild(current, NULL, BAD_CAST tok, NULL);
+        if (is_index(tok)) {
+            current = get_sequence_element(current, strtol(tok, NULL, 10));
+            if (!current)
+                return NULL;
 
-        if (!next)
-            return NULL;
+            continue;
+        }
 
-        current = next;
+        if (xmlStrcmp(current->name, PLACEHOLDER) == 0) {
+            xmlNodeSetName(current, BAD_CAST tok);
+        } else {
+            xmlNodePtr next = get_child(current, tok);
+            if (!next)
+                next = xmlNewChild(current, NULL, BAD_CAST tok, NULL);
+
+            if (!next)
+                return NULL;
+
+            current = next;
+        }
     }
 
     return current;
