@@ -10,16 +10,19 @@
 
 typedef struct {
     char *name;
+    char *desc;
     void (*cmd)(virConnectPtr c, const char *t);
 } Command;
 
 typedef struct {
     char *name;
+    char *desc;
     void (*cmd)(virConnectPtr c);
 } Command_Single;
 
 typedef struct {
     char *name;
+    char *desc;
     int (*cmd)(int argc, char **argv);
 } Command_Config;
 
@@ -51,3 +54,5 @@ void exec_cmd(virConnectPtr conn, const char *arg,
         const char *target, void (*cmdf)(virConnectPtr c, const char *t));
 
 int argHandle(virConnectPtr conn, int argc, char *argv[]);
+
+void show_cmd_desc(virConnectPtr conn, const char *name);
