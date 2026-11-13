@@ -16,32 +16,32 @@ int TOTAL_KEY_COUNT         = 0;
 keyval_t settings[MAXSET]   = {0};
 
 static Command_Single l_cmds[] = {
-    { "domains",    show_domains        },
-    { "networks",   show_networks       },
+    { "domains",    "List all domains",     show_domains        },
+    { "networks",   "List all networks",    show_networks       },
 };
 
 static Command_Config cfg_cmds[] = {
-    { "bootstrap",  bootstrap_domain    },
-    { "netconf",    configure_network   },
+    { "bootstrap",  "Bootstrap a domain",   bootstrap_domain    },
+    { "netconf",    "configure nat",        configure_network   },
 };
 
 static Command dom_cmds[] = {
-    {"create",      create_domain       },
-    {"info",        show_domain_info    },
-    {"xml",         show_domain_xml     },
-    {"start",       start_domain        },
-    {"stop",        stop_domain         },
-    {"delete",      delete_domain       },
-    {"shell",       start_console       },
+    {"create",      "Create a new domain",                  create_domain       },
+    {"info",        "Show domain info",                     show_domain_info    },
+    {"xml",         "Show domain xml",                      show_domain_xml     },
+    {"start",       "Start up a domain",                    start_domain        },
+    {"stop",        "Shut down a domain",                   stop_domain         },
+    {"delete",      "Delete a domain",                      delete_domain       },
+    {"shell",       "Connect to shell via serial console",  start_console       },
 };
 
 static Command net_cmds[] = {
-    {"create",      create_network      },
-    {"info",        show_network_info   },
-    {"start",       start_network       },
-    {"stop",        stop_network        },
-    {"delete",      delete_network      },
-    {"leases",      show_dhcp_leases    },
+    {"create",      "Create a new network",                 create_network      },
+    {"info",        "Show network info",                    show_network_info   },
+    {"start",       "Start up a network",                   start_network       },
+    {"stop",        "Shutdown a network",                   stop_network        },
+    {"delete",      "Delete a network",                     delete_network      },
+    {"leases",      "Show all dhcp leases in a network",    show_dhcp_leases    },
 };
 
 char* get_val(keyval_t pair[MAXSET], const char* keyname)
@@ -97,6 +97,7 @@ int main(int argc, char **argv) {
 int argHandle(virConnectPtr conn, int argc, char* argv[])
 {
     int opt;
+    int help = 0;
     opterr = 0; /* silent options */
     const char *arg_str = "hvd:l:n:c:";
     size_t count = sizeof(dom_cmds)/sizeof(dom_cmds[0]);
@@ -117,8 +118,6 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
                     }
                 }
                 break;
-            case 'h':
-                // TODO
             case 'l':
                 for (size_t i = 0; i < count; ++i) {
                     if (strcmp(optarg, l_cmds[i].name) == 0) {
@@ -138,10 +137,29 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
             case 'v':
                 fprintf(stdout, "Cobia version: 0.0.0\n");
                 break;
+            case 'h':
+                help = 1;
+                break;
             case '?':
                 default:
                 break;
         }
+    }
+
+    if (help) {
+        if (optind < argc) {
+            show_cmd_desc(conn, argv[optind]);
+        } else {
+            fprintf(stdout, "Usage: cobia [options...] <target>\n");
+            fprintf(stdout, " -c, --configure <command>     Bootstrap or configure domains\n");
+            fprintf(stdout, " -d, --domain <command>        Run a domain command\n");
+            fprintf(stdout, " -l, --list <target>           List domains or networks\n");
+            fprintf(stdout, " -n, --network <command>       Run a network command\n");
+            fprintf(stdout, " -v, --version                 Show version\n");
+            fprintf(stdout, " -h, --help                    Show usage\n");
+        }
+
+        return 0;
     }
 
     for (size_t i = 0; i < MAXSET; ++i) {
@@ -150,3 +168,47 @@ int argHandle(virConnectPtr conn, int argc, char* argv[])
     }
     return 0;
 }
+
+void show_cmd_desc(virConnectPtr conn, const char *name)
+{
+    if (strcmp(name, "domain") == 0) {
+        fprintf(stdout, "Usage: cobia -d <command> <target>\n");
+        size_t i = 0;
+        while (1) {
+            fprintf(stdout, " %-10s %s\n", dom_cmds[i].name, dom_cmds[i].desc);
+            if (strcmp(dom_cmds[i].name, "shell") == 0) break;
+            ++i;
+        }
+    }
+
+    if (strcmp(name, "network") == 0) {
+        fprintf(stdout, "Usage: cobia -n <command> <target>\n");
+        size_t i = 0;
+        while (1) {
+            fprintf(stdout, " %-10s %s\n", net_cmds[i].name, net_cmds[i].desc);
+            if (strcmp(net_cmds[i].name, "leases") == 0) break;
+            ++i;
+        }
+    }
+
+    if (strcmp(name, "list") == 0) {
+        fprintf(stdout, "Usage: cobia -l <command> <target>\n");
+        size_t i = 0;
+        while (1) {
+            fprintf(stdout, " %-10s %s\n", l_cmds[i].name, l_cmds[i].desc);
+            if (strcmp(l_cmds[i].name, "networks") == 0) break;
+            ++i;
+        }
+    }
+
+    if (strcmp(name, "configure") == 0) {
+        fprintf(stdout, "Usage: cobia -c <command> <target>\n");
+        size_t i = 0;
+        while (1) {
+            fprintf(stdout, " %-10s %s\n", cfg_cmds[i].name, cfg_cmds[i].desc);
+            if (strcmp(cfg_cmds[i].name, "netconf") == 0) break;
+            ++i;
+        }
+    }
+}
+
