@@ -5,7 +5,6 @@ package IMGDownload;
 use strict;
 use warnings;
 use WWW::Curl::Easy;
-use YAML::Tiny;
 use Cobia::VMConfig;
 
 sub select_image {
