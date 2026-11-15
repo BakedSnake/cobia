@@ -45,36 +45,110 @@ $ cobia -c bootstrap --os=2 --name="debian13" --apply # Create Debian domain yam
 ```yaml
 ---
 domain:
-  boot: uefi
-  cpu: '2'
-  devices:
-    disks:
-        '0':
-            size: '40'
-            source: /debian13-1792325918/debian13-1792325918.qcow2
-            type: hdd
-        '1':
-            source: /debian13-1792325918/cidata.iso
-            type: cd
-    graphics: spice
-    net:
-        model: virtio
-        source: default
-    video:
-      driver: qemu
-      model: virtio
-  name: debian13-1792325918
+  '@type': kvm
+  name: debian13
   os:
-    arch: x86_64
-    bootdev: hd
-    efi: 'false'
-    features:
-      secure_boot: no
-    machine: q35
-  ram: '2096'
+    '@firmware': efi
+    type:
+      '@machine': q35
+      '@arch': x86_64
+      '#type': hvm
+    boot:
+      '@dev': hd
+    firmware:
+    - feature:
+      '@name': enrolled-keys
+      '@enabled': no
+    - feature:
+      '@name': secure-boot
+      '@enabled': no
+    loader:
+      '@readonly': yes
+      '@format': qcow2
+      '@type': pflash
+      '#loader': /usr/share/edk2/OvmfX64/OVMF_CODE_4M.qcow2
+    nvram:
+      '#nvram': /var/lib/libvirt/qemu/nvram/debian13_VARS.qcow2
+      '@template': /usr/share/edk2/OvmfX64/OVMF_VARS_4M.qcow2
+      '@format': qcow2
+      '@templateFormat': qcow2
+  features:
+    acpi: ''
+    apic: ''
+    vmport:
+      '@state': off
+    smm:
+      '@state': on
+  memory:
+    '@unit': MiB
+    '#memory': '2096'
+  vcpu:
+    '@placement': static
+    '#vcpu': '2'
+  devices:
+  - emulator: /usr/bin/qemu-system-x86_64
+  - disk:
+    '@type': file
+    '@device': disk
+    driver:
+      '@type': qcow2
+      '@name': qemu
+    source:
+      '@file': debian13/debian13.qcow2
+    target:
+      '@dev': vda
+      '@bus': virtio
+  - disk:
+    '@type': file
+    '@device': cdrom
+    driver:
+      '@type': raw
+      '@name': qemu
+    source:
+      '@file': debian13/cidata.iso
+    target:
+      '@bus': scsi
+      '@dev': sda
+  - controller:
+    '@type': scsi
+    '@model': virtio-scsi
+  - controller:
+    '@type': usb
+    '@model': qemu-xhci
+  - controller:
+    '@type': sata
+  - graphics:
+    '@type': spice
+    '@autoport': yes
+    listen:
+      '@type': address
+  - interface:
+    '@type': network
+    source:
+      '@network': default
+    model:
+      '@type': virtio
+  - serial:
+    '@type': pty
+    target:
+      model:
+        '@name': isa-serial
+      '@type': isa-serial
+  - console:
+    '@type': pty
+    target:
+      '@type': serial
+      '@port': 0
+  - video:
+    driver:
+      '@name': qemu
+    model:
+      '@type': virtio
+      '@heads': 1
+      '@primary': yes
   ssh_key: /keys/key/key_rsa.pub
-  user: cg
-  vm_dir: /debian13-1792325918
+  user: username
+  vm_dir: /debian13
 ```
 
 **List domains:**
@@ -130,15 +204,23 @@ Creating a network can be done via a network yaml configuration file.
 ---
 network:
   name: new
-  forward: nat
-  bridge: virbr123
+  forward:
+    '@mode': nat
+    nat:
+      port:
+        '@start': 1024
+        '@end': 65535
+  bridge:
+    '@name': virbr123
+    '@stp': on
+    '@delay': 0
   ip:
-    address: 192.168.123.1
-    netmask: 255.255.255.0
+    '@address': 192.168.123.1
+    '@netmask': 255.255.255.0
     dhcp:
       range:
-        start: 192.168.123.2
-        end: 192.168.123.254
+        '@start': 192.168.123.2
+        '@end': 192.168.123.254
 ```
 
 ```bash
