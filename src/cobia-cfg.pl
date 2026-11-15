@@ -9,6 +9,7 @@ use File::Path qw( make_path );
 use File::Copy;
 
 use Cobia::VMConfig;
+use Cobia::VMYaml;
 use Cobia::CloudInit;
 use Cobia::IMGDownload;
 use Cobia::Network;
@@ -19,7 +20,6 @@ my $config_file = $VMConfig::config_file;
 
 my $uid;
 my $gid;
-my $vm_env;
 my $ssh_key;
 
 my $dosu;
@@ -89,15 +89,15 @@ sub configure {
     }
     
     ## Create VM env
-    $vm_env = "$VMConfig::domain_settings{vm_dir}/$VMConfig::domain_settings{name}";
-    my @vm_path = make_path("$vm_env", {
+    $VMConfig::vm_env = "$VMConfig::domain_settings{vm_dir}/$VMConfig::domain_settings{name}";
+    my @vm_path = make_path("$VMConfig::vm_env", {
         verbose => 0,
         mode => 0777,
-    }) unless ( -d $vm_env );
+    }) unless ( -d $VMConfig::vm_env );
     
     $uid = getpwnam("$VMConfig::username");
     $gid = getgrnam("libvirt");
-    chown($uid, $gid, $vm_env);
+    chown($uid, $gid, $VMConfig::vm_env);
 
     ## Display Configuration
     if ($debug) {
@@ -140,63 +140,9 @@ sub create_vm_disk {
     chown($uid, $gid, $diskname);
 }
 
-sub write_vm_yaml {
-    $VMConfig::domain_settings{cd} = "$vm_env/$VMConfig::domain_settings{cd}";
-    $VMConfig::domain_settings{disk} = "$vm_env/$VMConfig::domain_settings{name}.qcow2";
-    $VMConfig::domain_settings{vm_dir} = "$vm_env";
-
-    my @vm = (
-        os          => {
-            efi         => "false",
-            arch        => $VMConfig::domain_settings{arch},
-            machine     => $VMConfig::domain_settings{machine},
-            features    => {
-                secure_boot => $VMConfig::domain_settings{secboot},
-            },
-            bootdev     => $VMConfig::domain_settings{bootdev},
-
-        },
-        boot        => $VMConfig::domain_settings{boot},
-        cpu         => $VMConfig::domain_settings{cpu},
-        devices     => {
-            disks    => {
-                0 => {
-                    source  => $VMConfig::domain_settings{disk},
-                    size    => $VMConfig::domain_settings{disksize},
-                    type    => "hdd"
-                },
-                1 => {
-                    source  => $VMConfig::domain_settings{cd},
-                    type    => "cd"
-                },
-            },
-            graphics=> $VMConfig::domain_settings{graphics},
-            net     => {
-                source => $VMConfig::domain_settings{net_source},
-                model => $VMConfig::domain_settings{net_model},
-            },
-            video   => {
-                driver => $VMConfig::domain_settings{video_driver},
-                model => $VMConfig::domain_settings{video_model},
-            },
-        },
-        model       => $VMConfig::domain_settings{model},
-        name        => $VMConfig::domain_settings{name},
-        ram         => $VMConfig::domain_settings{ram},
-        ssh_key     => $VMConfig::domain_settings{ssh_key},
-        user        => $VMConfig::domain_settings{user},
-        vm_dir      => $VMConfig::domain_settings{vm_dir}
-    );
-
-    my $vm_yaml = YAML::Tiny->new;
-    $vm_yaml->[0]->{domain} = { @vm };
-    my $filename = "$VMConfig::domain_settings{name}".".yml";
-    $vm_yaml->write( $filename );
-}
-
 sub create_virtual_machine {
     print(STDOUT "\n>>> Installing virtual machine.\n");
-    my $virt_str = "cobia -d create $vm_env/$VMConfig::domain_settings{name}.yml |";
+    my $virt_str = "cobia -d create $VMConfig::vm_env/$VMConfig::domain_settings{name}.yml |";
 
     open VIRT, $virt_str or die "$!";
     while (my $line= <VIRT>) {
@@ -210,7 +156,7 @@ sub main {
     configure();
 
     ## Get Cloud image
-    chdir($vm_env);
+    chdir($VMConfig::vm_env);
     IMGDownload::get_disk_image() unless ( -f "$VMConfig::cloud_image_dir/$VMConfig::cloud_image_name");
     create_vm_disk();
     
@@ -221,11 +167,11 @@ sub main {
 
     ## Create VM
     if ($apply) {
-        write_vm_yaml();
+        &VMYaml::write_vm_yaml();
     }
 
     if ($create) {
-        write_vm_yaml();
+        &VMYaml::write_vm_yaml();
         create_virtual_machine();
     }
 
