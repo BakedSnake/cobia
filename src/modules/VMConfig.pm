@@ -4,7 +4,7 @@ package VMConfig;
 use strict;
 use warnings;
 
-use YAML::Tiny;
+use YAML::PP;
 
 our $username = $ENV{LOGNAME};
 our $config_file = "$ENV{HOME}/.config/cobia/cobia.yml";
@@ -14,9 +14,10 @@ our @os_img_names;
 our $cloud_image_dir;
 our $cloud_image_name;
 our $vm_image_choice = 1;
+our $vm_env;
 
-my $yaml = YAML::Tiny->read("$config_file");
-my $cfg = $yaml->[0];
+my $yaml = YAML::PP->new;
+my $cfg = $yaml->load_file("$config_file");
 
 our %domain_settings = (
     arch => "x86_64",
