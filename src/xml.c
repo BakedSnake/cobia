@@ -34,6 +34,76 @@ char *xpath_get(xmlDocPtr doc, const char *path)
     return result;
 }
 
+int get_sequence_index(xmlNodePtr node, int *id)
+{
+    *id = 0;
+    int i = 1;
+    for (xmlNodePtr prev = node->prev; prev; prev = prev->prev) {
+        if (prev->type == XML_ELEMENT_NODE && xmlStrEqual(prev->name, node->name)) {
+            ++i;
+            ++(*id);
+        }
+    }
+
+    for (xmlNodePtr next = node->next; next; next = next->next)
+        if (next->type == XML_ELEMENT_NODE && xmlStrEqual(next->name, node->name))
+            ++i;
+
+    return i;
+}
+
+void join_parts(const char *parts[KVSIZE], int n, const char *attr, const char *val)
+{
+    if (TOTAL_KEY_COUNT >= MAXSET) return;
+
+    size_t len = 0;
+    char keybuf[PATHSIZE];
+    for (size_t i = 0; i < n; ++i)
+        len += snprintf(keybuf+len, sizeof(keybuf) - len, "%s%s", i ? "." : "", parts[i]);
+
+    if (attr) snprintf(keybuf+len, sizeof(keybuf) - len, ".@%s", attr);
+
+    settings[TOTAL_KEY_COUNT].key = strdup(keybuf);
+    settings[TOTAL_KEY_COUNT].val = strdup(val);
+    ++TOTAL_KEY_COUNT;
+}
+
+void parse_xml(xmlNodePtr node, const char **parts, int depth)
+{
+    for (; node; node = node->next ) {
+        if (node->type != XML_ELEMENT_NODE)
+            continue;
+
+        int id, total = get_sequence_index(node, &id);
+        char part[KVSIZE];
+        if (total > 1) {
+            snprintf(part, sizeof(part), "%s.%d", (char *)node->name, id);
+        } else {
+            snprintf(part, sizeof(part), "%s", (char *)node->name);
+        }
+
+        parts[depth] = part;
+
+        for (xmlAttrPtr attr = node->properties; attr; attr = attr->next) {
+            xmlChar *prop = xmlGetProp(node, attr->name);
+            join_parts(parts, depth+1, (char *)attr->name, prop ? (char *)prop : "");
+            xmlFree(prop);
+        }
+
+        xmlNodePtr children = node->children;
+        while(children && children->type != XML_ELEMENT_NODE)
+            children = children->next;
+
+        if (!children) {
+            xmlChar *str = xmlNodeGetContent(node);
+            join_parts(parts, depth+1, NULL, str ? (char *)str : "");
+            xmlFree(str);
+        }
+
+        parse_xml(node->children, parts, depth + 1);
+    }
+}
+
 int is_index(const char *str)
 {
     if (*str == '\0') return 0;
