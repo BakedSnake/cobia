@@ -3,16 +3,53 @@
 #include "yaml.h"
 #include "cobia.h"
 
+int DEPTH = 0;
+int IS_SEQUENCE[MAXDEPTH]       = {0};
+int IS_KEYMAP[MAXDEPTH]         = {0};
+int SEQUENCE_ID[MAXDEPTH]       = {0};
+char KEYBUF[MAXDEPTH][KVSIZE]   = {0};
+char KEYS[MAXKEYS][KVSIZE]      = {0};
+char VALUES[MAXKEYS][KVSIZE]    = {0};
+
+void yaml_join_parts(const char *value, int len)
+{
+    if (DEPTH > 0 && !IS_SEQUENCE[DEPTH - 1] && IS_KEYMAP[DEPTH - 1]) {
+        snprintf(KEYBUF[DEPTH - 1], KVSIZE, "%.*s", len, value);
+        IS_KEYMAP[DEPTH - 1] = 0;
+    } else {
+        if (TOTAL_KEY_COUNT < MAXKEYS) {
+            char path[KVSIZE * MAXDEPTH] = {0};
+            for (int d = 0; d < DEPTH; ++d) {
+                if (d > 0)
+                    strncat(path, ".", sizeof(path) - strlen(path) - 1);
+    
+                if (IS_SEQUENCE[d]) {
+                    char n[16];
+                    snprintf(n, sizeof(n), "%d", SEQUENCE_ID[d]);
+                    strncat(path, n, sizeof(path) - strlen(path) - 1);
+                } else {
+                    strncat(path, KEYBUF[d], sizeof(path) - strlen(path) - 1);
+                }
+            }
+    
+            snprintf(KEYS[TOTAL_KEY_COUNT], KVSIZE, "%s", path);
+            snprintf(VALUES[TOTAL_KEY_COUNT], KVSIZE, "%.*s", len, value);
+            ++TOTAL_KEY_COUNT;
+        }
+    
+        if (DEPTH > 0) {
+            if (IS_SEQUENCE[DEPTH - 1]) {
+                ++SEQUENCE_ID[DEPTH - 1];
+            } else {
+                IS_KEYMAP[DEPTH - 1] = 1;
+                KEYBUF[DEPTH - 1][0] = '\0';
+            }
+        }
+    }
+}
+
 void parse_yaml(const char *filepath)
 {
-    int depth = 0;
-    int is_sequence[MAXDEPTH]       = {0};
-    int is_keymap[MAXDEPTH]         = {0};
-    int sequence_id[MAXDEPTH]       = {0};
-    char keybuf[MAXDEPTH][KVSIZE]   = {0};
-    char keys[MAXKEYS][KVSIZE]      = {0};
-    char values[MAXKEYS][KVSIZE]    = {0};
-
     FILE *fp = fopen(filepath, "rb");
     yaml_parser_t parser;
     yaml_event_t event;
@@ -29,26 +66,26 @@ void parse_yaml(const char *filepath)
             break;
 
         if (event.type == YAML_MAPPING_START_EVENT) {
-            is_sequence[depth] = 0;
-            is_keymap[depth] = 1;
-            ++depth;
+            IS_SEQUENCE[DEPTH] = 0;
+            IS_KEYMAP[DEPTH] = 1;
+            ++DEPTH;
         }
 
         if (event.type == YAML_SEQUENCE_START_EVENT) {
-            is_sequence[depth] = 1;
-            sequence_id[depth] = 0;
-            ++depth;
+            IS_SEQUENCE[DEPTH] = 1;
+            SEQUENCE_ID[DEPTH] = 0;
+            ++DEPTH;
         }
 
         if (event.type == YAML_MAPPING_END_EVENT ||
             event.type == YAML_SEQUENCE_END_EVENT) {
-            --depth;
-            if (depth > 0) {
-                if (is_sequence[depth - 1]) {
-                    ++sequence_id[depth - 1];
+            --DEPTH;
+            if (DEPTH > 0) {
+                if (IS_SEQUENCE[DEPTH - 1]) {
+                    ++SEQUENCE_ID[DEPTH - 1];
                 } else {
-                    is_keymap[depth - 1] = 1;
-                    keybuf[depth - 1][0] = '\0';
+                    IS_KEYMAP[DEPTH - 1] = 1;
+                    KEYBUF[DEPTH - 1][0] = '\0';
                 }
             }
         }
@@ -56,40 +93,7 @@ void parse_yaml(const char *filepath)
         if (event.type == YAML_SCALAR_EVENT) {
             char *value = (char *)event.data.scalar.value;
             int len = event.data.scalar.length;
-
-            if (depth > 0 && !is_sequence[depth - 1] && is_keymap[depth - 1]) {
-                snprintf(keybuf[depth - 1], KVSIZE, "%.*s", len, value);
-                is_keymap[depth - 1] = 0;
-            } else {
-                if (TOTAL_KEY_COUNT < MAXKEYS) {
-                    char path[KVSIZE * MAXDEPTH] = {0};
-                    for (int d = 0; d < depth; ++d) {
-                        if (d > 0)
-                            strncat(path, ".", sizeof(path) - strlen(path) - 1);
-
-                        if (is_sequence[d]) {
-                            char n[16];
-                            snprintf(n, sizeof(n), "%d", sequence_id[d]);
-                            strncat(path, n, sizeof(path) - strlen(path) - 1);
-                        } else {
-                            strncat(path, keybuf[d], sizeof(path) - strlen(path) - 1);
-                        }
-                    }
-
-                    snprintf(keys[TOTAL_KEY_COUNT], KVSIZE, "%s", path);
-                    snprintf(values[TOTAL_KEY_COUNT], KVSIZE, "%.*s", len, value);
-                    ++TOTAL_KEY_COUNT;
-                }
-
-                if (depth > 0) {
-                    if (is_sequence[depth - 1]) {
-                        ++sequence_id[depth - 1];
-                    } else {
-                        is_keymap[depth - 1] = 1;
-                        keybuf[depth - 1][0] = '\0';
-                    }
-                }
-            }
+            yaml_join_parts(value, len);
         }
 
         if (event.type == YAML_STREAM_END_EVENT)
@@ -105,8 +109,8 @@ void parse_yaml(const char *filepath)
     for (int i = 0; i < TOTAL_KEY_COUNT; ++i) {
         settings[i].key = malloc(KVSIZE);
         settings[i].val = malloc(KVSIZE);
-        memcpy(settings[i].key, keys[i], KVSIZE);
-        memcpy(settings[i].val, values[i], KVSIZE);
+        memcpy(settings[i].key, KEYS[i], KVSIZE);
+        memcpy(settings[i].val, VALUES[i], KVSIZE);
 
         fprintf(stdout, "%s: %s\n", settings[i].key, settings[i].val);
     }
