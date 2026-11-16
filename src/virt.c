@@ -171,6 +171,17 @@ void show_domain_xml(virConnectPtr conn, const char *name)
     if (dom != NULL) {
         fprintf(stdout, "%s\n", virDomainGetXMLDesc(dom, 0));
     }
+
+    char *xml_desc = virDomainGetXMLDesc(dom, 0);
+    xmlDocPtr doc = xmlReadMemory(xml_desc, (int)strlen(xml_desc), NULL, "UTF-8", 0);
+    xmlNodePtr root = xmlDocGetRootElement(doc);
+
+    const char *parts[KVSIZE];
+    parse_xml(root, parts, 0);
+    xmlFreeDoc(doc);
+    for (int i = 0; i < TOTAL_KEY_COUNT; ++i) {
+        printf("%s = %s\n", settings[i].key, settings[i].val);
+    }
 }
 
 void show_domains(virConnectPtr conn)

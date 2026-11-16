@@ -1,6 +1,7 @@
 #include <getopt.h>
 #include <libvirt/libvirt.h>
 
+#define PATHSIZE    1024
 #define KVSIZE      256
 #define MAXDEPTH    8
 #define MAXKEYS     256
