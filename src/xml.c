@@ -36,20 +36,24 @@ char *xpath_get(xmlDocPtr doc, const char *path)
 
 int get_sequence_index(xmlNodePtr node, int *id)
 {
-    *id = 0;
-    int i = 1;
-    for (xmlNodePtr prev = node->prev; prev; prev = prev->prev) {
-        if (prev->type == XML_ELEMENT_NODE && xmlStrEqual(prev->name, node->name)) {
-            ++i;
-            ++(*id);
-        }
+    int total = 0, index = 0;
+    if (!node->parent || node->parent->type != XML_ELEMENT_NODE) {
+        *id = 0;
+        return 1;
     }
 
-    for (xmlNodePtr next = node->next; next; next = next->next)
-        if (next->type == XML_ELEMENT_NODE && xmlStrEqual(next->name, node->name))
-            ++i;
+    for (xmlNodePtr current = node->parent->children; current; current = current->next) {
+        if (current->type != XML_ELEMENT_NODE)
+            continue;
 
-    return i;
+        if (current == node)
+            index = total;
+
+        ++total;
+    }
+
+    *id = index;
+    return total;
 }
 
 void join_parts(const char *parts[KVSIZE], int n, const char *attr, const char *val)
@@ -68,20 +72,37 @@ void join_parts(const char *parts[KVSIZE], int n, const char *attr, const char *
     ++TOTAL_KEY_COUNT;
 }
 
+int has_dup(xmlNodePtr item)
+{
+    for (xmlNodePtr it = item; it; it = it->next) {
+        if (it->type != XML_ELEMENT_NODE)
+            continue;
+
+        for (xmlNodePtr n = it->next; n; n= n->next) {
+            if (n->type == XML_ELEMENT_NODE && xmlStrEqual(it->name, n->name))
+                return 1;
+        }
+    }
+
+    return 0;
+}
+
 void parse_xml(xmlNodePtr node, const char **parts, int depth)
 {
+    int pos = 0;
+    int seq = has_dup(node);
     for (; node; node = node->next ) {
         if (node->type != XML_ELEMENT_NODE)
             continue;
 
-        int id, total = get_sequence_index(node, &id);
         char part[KVSIZE];
-        if (total > 1) {
-            snprintf(part, sizeof(part), "%s.%d", (char *)node->name, id);
+        if (seq) {
+            snprintf(part, sizeof(part), "%d.%s", pos, (char *)node->name);
         } else {
             snprintf(part, sizeof(part), "%s", (char *)node->name);
         }
 
+        ++pos;
         parts[depth] = part;
 
         for (xmlAttrPtr attr = node->properties; attr; attr = attr->next) {
@@ -96,7 +117,8 @@ void parse_xml(xmlNodePtr node, const char **parts, int depth)
 
         if (!children) {
             xmlChar *str = xmlNodeGetContent(node);
-            join_parts(parts, depth+1, NULL, str ? (char *)str : "");
+            if (str && *str)
+                join_parts(parts, depth+1, NULL, (char *)str);
             xmlFree(str);
         }
 
@@ -173,6 +195,7 @@ xmlNodePtr walk_path(xmlDocPtr doc, const char *path, const char *val)
         tok = strtok(NULL, ".");
     }
 
+    int is_positional = 0;
     for (; tok; tok = strtok(NULL, ".")) {
         if (tok[0] == '@') {
             xmlSetProp(current, BAD_CAST tok+1, BAD_CAST val);
@@ -186,11 +209,15 @@ xmlNodePtr walk_path(xmlDocPtr doc, const char *path, const char *val)
             if (!current)
                 return NULL;
 
+            is_positional = 1;
             continue;
         }
 
         if (xmlStrcmp(current->name, PLACEHOLDER) == 0) {
             xmlNodeSetName(current, BAD_CAST tok);
+        } else if (is_positional) {
+            if (xmlStrcmp(current->name, BAD_CAST tok) != 0)
+                return NULL;
         } else {
             xmlNodePtr next = get_child(current, tok);
             if (!next)
@@ -201,6 +228,8 @@ xmlNodePtr walk_path(xmlDocPtr doc, const char *path, const char *val)
 
             current = next;
         }
+
+        is_positional = 0;
     }
 
     return current;
