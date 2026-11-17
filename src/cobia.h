@@ -6,7 +6,7 @@
 #define MAXDEPTH    8
 #define MAXKEYS     256
 #define MAXDISK     64
-#define MAXSET      64
+#define MAXSET      256
 #define D_ATTSIZE   32
 
 typedef struct {
