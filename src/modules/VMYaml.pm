@@ -21,16 +21,18 @@ sub write_vm_yaml {
 
     tie my %firm_keys_yaml, 'YAML::PP::Preserve::Hash';
     %firm_keys_yaml = (
-        feature => undef,
-        '@name' => "enrolled-keys",
-        '@enabled' => "no",
+        feature => {
+            '@name' => "enrolled-keys",
+            '@enabled' => "no",
+        },
     );
     
     tie my %firm_secboot_yaml, 'YAML::PP::Preserve::Hash';
     %firm_secboot_yaml = (
-       feature => undef,
-       '@name' => "secure-boot",
-       '@enabled' => "no",
+        feature => {
+            '@name' => "secure-boot",
+            '@enabled' => "no",
+        },
     );
     
     tie my %os_yaml, 'YAML::PP::Preserve::Hash';
@@ -95,129 +97,137 @@ sub write_vm_yaml {
     
     tie my %disk_yaml, 'YAML::PP::Preserve::Hash';
     %disk_yaml = (
-        disk => undef,
-        '@type' => "file",
-        '@device' => "disk",
+        disk => {
+            '@type' => "file",
+            '@device' => "disk",
     
-        driver => {
-            '@name' => "qemu",
-            '@type' => "qcow2",
-        },
+            driver => {
+                '@name' => "qemu",
+                '@type' => "qcow2",
+            },
     
-        source => {
-            '@file' => $VMConfig::domain_settings{disk},
-        },
+            source => {
+                '@file' => $VMConfig::domain_settings{disk},
+            },
     
-        target => {
-            '@dev'  => "vda",
-            '@bus'  => "virtio",
-        },
-    
+            target => {
+                '@dev'  => "vda",
+                '@bus'  => "virtio",
+            },
+        }
     );
     
     tie my %cd_yaml, 'YAML::PP::Preserve::Hash';
     %cd_yaml = (
-        disk => undef,
-        '@type' => "file",
-        '@device' => "cdrom",
+        disk => {
+            '@type' => "file",
+            '@device' => "cdrom",
     
-        driver => {
-            '@name' => "qemu",
-            '@type' => "raw",
-        },
+            driver => {
+                '@name' => "qemu",
+                '@type' => "raw",
+            },
     
-        source => {
-            '@file' => $VMConfig::domain_settings{cd},
-        },
+            source => {
+                '@file' => $VMConfig::domain_settings{cd},
+            },
     
-        target => {
-            '@dev'  => "sda",
-            '@bus'  => "scsi",
-        },
-    
+            target => {
+                '@dev'  => "sda",
+                '@bus'  => "scsi",
+            },
+        }
     );
     
     tie my %scsi_ctrl_yaml, 'YAML::PP::Preserve::Hash';
     %scsi_ctrl_yaml = (
-        controller => undef,
-        '@type' => "scsi",
-        '@model' => "virtio-scsi",
+        controller => {
+            '@type' => "scsi",
+            '@model' => "virtio-scsi",
+        }
     );
     
     tie my %usb_ctrl_yaml, 'YAML::PP::Preserve::Hash';
     %usb_ctrl_yaml = (
-        controller => undef,
-        '@type' => "usb",
-        '@model' => "qemu-xhci",
+        controller => {
+            '@type' => "usb",
+            '@model' => "qemu-xhci",
+        }
     );
     
     tie my %sata_ctrl_yaml, 'YAML::PP::Preserve::Hash';
     %sata_ctrl_yaml = (
-        controller => undef,
-        '@type' => "sata",
+        controller => {
+            '@type' => "sata",
+        }
     );
     
     tie my %graphs_yaml, 'YAML::PP::Preserve::Hash';
     %graphs_yaml = (
-        graphics => undef,
-        '@type' => $VMConfig::domain_settings{graphics},
-        '@autoport' => "yes",
-        listen => {
-            '@type' => "address",
+        graphics => {
+            '@type' => $VMConfig::domain_settings{graphics},
+            '@autoport' => "yes",
+            listen => {
+                '@type' => "address",
+            }
         },
     );
     
     tie my %serial_yaml, 'YAML::PP::Preserve::Hash';
     %serial_yaml = (
-        serial => undef,
-        '@type' => "pty",
+        serial => {
+            '@type' => "pty",
     
-        target => {
-            '@type' => "isa-serial",
+            target => {
+                '@type' => "isa-serial",
     
-            model => {
-                '@name' => "isa-serial",
+                model => {
+                    '@name' => "isa-serial",
+                },
             },
-        },
+        }
     );
     
     tie my %console_yaml, 'YAML::PP::Preserve::Hash';
     %console_yaml = (
-        console => undef,
-        '@type' => "pty",
+        console => {
+            '@type' => "pty",
     
-        target => {
-            '@type' => "serial",
-            '@port' => 0,
-        },
+            target => {
+                '@type' => "serial",
+                '@port' => 0,
+            },
+        }
     );
     
     tie my %network_yaml, 'YAML::PP::Preserve::Hash';
     %network_yaml = (
-        interface => undef,
-        '@type' => "network",
+        interface => {
+            '@type' => "network",
     
-        source => {
-            '@network' => $VMConfig::domain_settings{net_source},
-        },
+            source => {
+                '@network' => $VMConfig::domain_settings{net_source},
+            },
     
-        model => {
-            '@type' => $VMConfig::domain_settings{net_model},
+            model => {
+                '@type' => $VMConfig::domain_settings{net_model},
+            }
         }
     );
     
     tie my %video_yaml, 'YAML::PP::Preserve::Hash';
     %video_yaml = (
-        video => undef,
-        driver => {
-            '@name' => $VMConfig::domain_settings{video_driver},
-        },
+        video => {
+            driver => {
+                '@name' => $VMConfig::domain_settings{video_driver},
+            },
     
-        model => {
-            '@type' => $VMConfig::domain_settings{video_model},
-            '@heads' => 1,
-            '@primary' => "yes",
-        },
+            model => {
+                '@type' => $VMConfig::domain_settings{video_model},
+                '@heads' => 1,
+                '@primary' => "yes",
+            },
+        }
     );
     
     tie my %domain_yaml, 'YAML::PP::Preserve::Hash';
@@ -254,11 +264,11 @@ sub write_vm_yaml {
     my $filename = "$VMConfig::domain_settings{name}".".yml";
     $vm_yaml->dump_file($filename, \%vm);
 
-    open my $f_yaml, "+<", $filename or die "$!";
-    my @lines = <$f_yaml>;
-    s/: null$/:/ for @lines;
-    seek($f_yaml, 0, 0);
-    print($f_yaml @lines);
-    truncate($f_yaml, tell $f_yaml);
-    close($f_yaml);
+    #open my $f_yaml, "+<", $filename or die "$!";
+    #my @lines = <$f_yaml>;
+    #s/: null$/:/ for @lines;
+    #seek($f_yaml, 0, 0);
+    #print($f_yaml @lines);
+    #truncate($f_yaml, tell $f_yaml);
+    #close($f_yaml);
 }
