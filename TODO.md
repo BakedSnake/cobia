@@ -29,9 +29,9 @@
   - [x] Parse yaml into xml and use it to create domain
   - [x] YAML config file ( Perl )
   - [x] Create domain yaml ( Perl )
-  - [ ] Dynamic yaml <-> xml conversion
+  - [x] Dynamic yaml <-> xml conversion
     - [x] yaml -> xml
-    - [ ] xml -> yaml
+    - [x] xml -> yaml
   - [ ] XML validation
   - [ ] YAML validation
 - [x] Cache OS Cloud images
