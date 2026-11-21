@@ -15,26 +15,61 @@
 char *get_nvram_path(const char* name);
 
 /*
- * get_sequence_index()
+ * node_has_attrs()
  *
- * Returns sequence id.
- * When  parsing  xml  into  dot  notation,   if  a
- * sequence is found we must get it's  sequence  id
- * in order for it to be attached to our  notation.
+ * Checks if an xml node contains  any  attributes.
+ * Returns 1 if the node  contains  any  attributes
+ * and 0 if there aren't any.
  *
  */
 
-int get_sequence_index(xmlNodePtr node, int *id);
+int node_has_attrs(xmlNodePtr item);
 
 /*
- * join_parts()
+ * node_has_text()
+ *
+ * Checks if an xml node contains any  text  value.
+ * Returns 1 if the  node  contains  a  valid  text
+ * value and 0 if there is no value.
+ *
+ */
+
+int node_has_text(xmlNodePtr item);
+
+/*
+ * node_has_dup()
+ *
+ * Checks  if  an  xml  node  has  any  duplicates,
+ * meaning if the node is part  of  a  sequence  or
+ * not.
+ * Returns 1 if the node has a duplicate and  0  if
+ * not.
+ *
+ */
+
+int node_has_dup(xmlNodePtr item);
+
+/*
+ * tag_is_ignored()
+ *
+ * Checks if for blacklisted tags.
+ * Returns 1 if the current tag is blacklisted  and
+ * 0 if not.
+ *
+ */
+
+int tag_is_ignored(const xmlChar *name);
+
+/*
+ * dotnot_join_parts()
  *
  * Joins nested paths into dot notation, adding the
  * keys  and   the   values   to   the    settings.
  *
  */
 
-void join_parts(const char *parts[256], int n, const char *attr, const char *val);
+void dotnot_join_parts(const char *parts[256],
+        int n, const char *attr, const char *val);
 
 /*
  * parse_xml()
