@@ -28,7 +28,7 @@ static Command_Config cfg_cmds[] = {
 static Command dom_cmds[] = {
     {"create",      "Create a new domain",                  create_domain       },
     {"info",        "Show domain info",                     show_domain_info    },
-    {"xml",         "Show domain xml",                      show_domain_xml     },
+    {"settings",    "Show domain settings",                 show_domain_settings},
     {"start",       "Start up a domain",                    start_domain        },
     {"stop",        "Shut down a domain",                   stop_domain         },
     {"delete",      "Delete a domain",                      delete_domain       },

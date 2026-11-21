@@ -16,7 +16,7 @@ void start_domain(virConnectPtr conn, const char *name);
 
 void stop_domain(virConnectPtr conn, const char *name);
 
-void show_domain_xml(virConnectPtr conn, const char *name);
+void show_domain_settings(virConnectPtr conn, const char *name);
 
 void show_domains(virConnectPtr conn);
 

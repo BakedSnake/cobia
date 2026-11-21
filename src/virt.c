@@ -165,12 +165,13 @@ virDomainPtr get_domain(virConnectPtr conn, const char *name)
     return NULL;
 }
 
-void show_domain_xml(virConnectPtr conn, const char *name)
+void show_domain_settings(virConnectPtr conn, const char *name)
 {
     virDomainPtr dom = get_domain(conn, name);
-    if (dom != NULL) {
-        fprintf(stdout, "%s\n", virDomainGetXMLDesc(dom, 0));
-    }
+    // TODO: print with debug flag
+    //if (dom != NULL) {
+    //    fprintf(stdout, "%s\n", virDomainGetXMLDesc(dom, 0));
+    //}
 
     char *xml_desc = virDomainGetXMLDesc(dom, 0);
     xmlDocPtr doc = xmlReadMemory(xml_desc, (int)strlen(xml_desc), NULL, "UTF-8", 0);
@@ -179,9 +180,12 @@ void show_domain_xml(virConnectPtr conn, const char *name)
     const char *parts[KVSIZE];
     parse_xml(root, parts, 0);
     xmlFreeDoc(doc);
-    for (int i = 0; i < TOTAL_KEY_COUNT; ++i) {
-        printf("%s = %s\n", settings[i].key, settings[i].val);
-    }
+    // TODO: print with debug flag
+    //for (int i = 0; i < TOTAL_KEY_COUNT; ++i) {
+    //    printf("%s = %s\n", settings[i].key, settings[i].val);
+    //}
+
+    convert_to_yaml();
 }
 
 void show_domains(virConnectPtr conn)
