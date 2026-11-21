@@ -270,7 +270,7 @@ void show_networks(virConnectPtr conn)
     }
 }
 
-char *get_network_xml(virConnectPtr conn, const char *name)
+char *get_network_settings(virConnectPtr conn, const char *name)
 {
     virNetworkPtr net = get_network(conn, name);
     if (net != NULL) {
@@ -282,7 +282,7 @@ char *get_network_xml(virConnectPtr conn, const char *name)
 
 void show_network_info(virConnectPtr conn, const char *name)
 {
-    char *netxml = get_network_xml(conn, name);
+    char *netxml = get_network_settings(conn, name);
     if (netxml != NULL) {
         xmlDocPtr doc = xmlReadMemory(netxml, strlen(netxml), "n.xml", NULL, XML_PARSE_RECOVER | XML_PARSE_NOBLANKS);
         if (doc == NULL) {
