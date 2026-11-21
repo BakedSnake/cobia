@@ -8,6 +8,8 @@
 
 #define PLACEHOLDER BAD_CAST "__item"
 
+static const char *ignored_tags[] = { NULL };
+
 char* get_nvram_path(const char *name)
 {
     char *nvram = (char *)malloc(KVSIZE);
@@ -34,45 +36,19 @@ char *xpath_get(xmlDocPtr doc, const char *path)
     return result;
 }
 
-int get_sequence_index(xmlNodePtr node, int *id)
+int node_has_attrs(xmlNodePtr item) { return item->properties != NULL; }
+
+int node_has_text(xmlNodePtr item)
 {
-    int total = 0, index = 0;
-    if (!node->parent || node->parent->type != XML_ELEMENT_NODE) {
-        *id = 0;
-        return 1;
+    for (xmlNodePtr current = item->children; current; current = current->next) {
+        if (xmlNodeIsText(current) && !xmlIsBlankNode(current))
+            return 1;
     }
 
-    for (xmlNodePtr current = node->parent->children; current; current = current->next) {
-        if (current->type != XML_ELEMENT_NODE)
-            continue;
-
-        if (current == node)
-            index = total;
-
-        ++total;
-    }
-
-    *id = index;
-    return total;
+    return 0;
 }
 
-void join_parts(const char *parts[KVSIZE], int n, const char *attr, const char *val)
-{
-    if (TOTAL_KEY_COUNT >= MAXSET) return;
-
-    size_t len = 0;
-    char keybuf[PATHSIZE];
-    for (size_t i = 0; i < n; ++i)
-        len += snprintf(keybuf+len, sizeof(keybuf) - len, "%s%s", i ? "." : "", parts[i]);
-
-    if (attr) snprintf(keybuf+len, sizeof(keybuf) - len, ".@%s", attr);
-
-    settings[TOTAL_KEY_COUNT].key = strdup(keybuf);
-    settings[TOTAL_KEY_COUNT].val = strdup(val);
-    ++TOTAL_KEY_COUNT;
-}
-
-int has_dup(xmlNodePtr item)
+int node_has_dup(xmlNodePtr item)
 {
     for (xmlNodePtr it = item; it; it = it->next) {
         if (it->type != XML_ELEMENT_NODE)
@@ -87,27 +63,69 @@ int has_dup(xmlNodePtr item)
     return 0;
 }
 
+int tag_is_ignored(const xmlChar *name)
+{
+    for (size_t i = 0; ignored_tags[i]; ++i)
+        if (xmlStrEqual(name, BAD_CAST ignored_tags[i]))
+            return 1;
+    return 0;
+}
+
+void dotnot_join_parts(const char *parts[KVSIZE], int n, const char *attr, const char *val)
+{
+    if (TOTAL_KEY_COUNT >= MAXSET) return;
+
+    size_t len = 0;
+    char keybuf[PATHSIZE];
+    for (size_t i = 0; i < n; ++i) {
+        len += snprintf(keybuf+len, sizeof(keybuf) - len, "%s%s", i ? "." : "", parts[i]);
+        if (len >= sizeof(keybuf)) len = sizeof(keybuf) -1;
+    }
+
+
+    if (attr && *attr) {
+        snprintf(keybuf+len, sizeof(keybuf) - len, ".%s", attr);
+    }
+
+    settings[TOTAL_KEY_COUNT].key = strdup(keybuf);
+    settings[TOTAL_KEY_COUNT].val = strdup(val);
+    ++TOTAL_KEY_COUNT;
+}
+
 void parse_xml(xmlNodePtr node, const char **parts, int depth)
 {
+    if (!node) return;
+    xmlNodePtr parent = node->parent;
+
+    int p_ok = parent && parent->type == XML_ELEMENT_NODE;
+    int p_attrs       = p_ok ? node_has_attrs(node)  : 0;
+    int p_text        = p_ok ? node_has_text(node)   : 0;
+    int p_seq         = p_ok ? node_has_dup(node)    : 0;
+    int p_map         = p_attrs || p_text || !p_seq;
+
     int pos = 0;
-    int seq = has_dup(node);
     for (; node; node = node->next ) {
         if (node->type != XML_ELEMENT_NODE)
             continue;
 
+        if (tag_is_ignored(node->name))
+            continue;
+
         char part[KVSIZE];
-        if (seq) {
-            snprintf(part, sizeof(part), "%d.%s", pos, (char *)node->name);
-        } else {
-            snprintf(part, sizeof(part), "%s", (char *)node->name);
-        }
+        if (p_map) snprintf(part, sizeof(part), "%s", (char *)node->name);
+        else snprintf(part, sizeof(part), "%d.%s", pos, (char *)node->name);
 
         ++pos;
         parts[depth] = part;
 
         for (xmlAttrPtr attr = node->properties; attr; attr = attr->next) {
             xmlChar *prop = xmlGetProp(node, attr->name);
-            join_parts(parts, depth+1, (char *)attr->name, prop ? (char *)prop : "");
+            char propbuf[KVSIZE] = {0};
+            snprintf(propbuf, KVSIZE, "%s%s",
+                    xmlStrcmp(attr->name, node->name) == 0 ? "#" : "@",
+                    (char *) attr->name);
+
+            dotnot_join_parts(parts, depth+1, propbuf, prop ? (char *)prop : "");
             xmlFree(prop);
         }
 
@@ -116,10 +134,27 @@ void parse_xml(xmlNodePtr node, const char **parts, int depth)
             children = children->next;
 
         if (!children) {
-            xmlChar *str = xmlNodeGetContent(node);
-            if (str && *str)
-                join_parts(parts, depth+1, NULL, (char *)str);
-            xmlFree(str);
+            if (!node->children && !node->properties & !node->content) {
+                dotnot_join_parts(parts, depth+1, NULL, "");
+            } else {
+                xmlChar *str = xmlNodeGetContent(node);
+                if (!str && !*str) {
+                    xmlFree(str);
+                    continue;
+                }
+
+                if (node->properties) {
+                    xmlChar *cont = xmlNodeGetContent(node);
+                    if (cont && *cont) {
+                        char tag[KVSIZE];
+                        snprintf(tag, KVSIZE, "#%s", (char *)node->name);
+                        dotnot_join_parts(parts, depth+1, tag, (char *)str);
+                    }
+                } else
+                    dotnot_join_parts(parts, depth+1, NULL, (char *)str);
+
+                xmlFree(str);
+            }
         }
 
         parse_xml(node->children, parts, depth + 1);
