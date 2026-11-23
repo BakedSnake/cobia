@@ -90,9 +90,9 @@ void show_info(virConnectPtr conn, const char *name)
     if (dom != NULL) {
         virDomainInfo dm;
         if (virDomainGetInfo(dom, &dm) == 0) {
-            mvwprintw(MAIN_WIN, 1, 1, "State: %s", dm.state == 1 ? "Running" : "Stopped");
-            mvwprintw(MAIN_WIN, 2, 1, "Max Memory: %lu", dm.maxMem);
-            mvwprintw(MAIN_WIN, 3, 1, "CPU nr: %d", dm.nrVirtCpu);
+            mvwprintw(MAIN_WIN, 1, 2, "State: %s", dm.state == 1 ? "Running" : "Stopped");
+            mvwprintw(MAIN_WIN, 2, 2, "Max Memory: %lu", dm.maxMem);
+            mvwprintw(MAIN_WIN, 3, 2, "CPU nr: %d", dm.nrVirtCpu);
         }
 
         if (dm.state == 1) {
@@ -119,12 +119,12 @@ void show_ninfo(virConnectPtr conn, const char *name)
             return;
         }
 
-        mvwprintw(MAIN_WIN, 1, 1, "Name: %s", xpath_get(doc, "/network/name"));
-        mvwprintw(MAIN_WIN, 2, 1, "UUID: %s", xpath_get(doc, "/network/uuid"));
-        mvwprintw(MAIN_WIN, 3, 1, "Bridge Name: %s", xpath_get(doc, "/network/bridge/@name"));
-        mvwprintw(MAIN_WIN, 4, 1, "Mode: %s", xpath_get(doc, "/network/forward/@mode"));
-        mvwprintw(MAIN_WIN, 5, 1, "IP: %s", xpath_get(doc, "/network/ip/@address"));
-        mvwprintw(MAIN_WIN, 6, 1, "DCHP Range: %s - %s", xpath_get(doc, "/network/ip/dhcp/range/@start"),
+        mvwprintw(MAIN_WIN, 1, 2, "Name: %s", xpath_get(doc, "/network/name"));
+        mvwprintw(MAIN_WIN, 2, 2, "UUID: %s", xpath_get(doc, "/network/uuid"));
+        mvwprintw(MAIN_WIN, 3, 2, "Bridge Name: %s", xpath_get(doc, "/network/bridge/@name"));
+        mvwprintw(MAIN_WIN, 4, 2, "Mode: %s", xpath_get(doc, "/network/forward/@mode"));
+        mvwprintw(MAIN_WIN, 5, 2, "IP: %s", xpath_get(doc, "/network/ip/@address"));
+        mvwprintw(MAIN_WIN, 6, 2, "DCHP Range: %s - %s", xpath_get(doc, "/network/ip/dhcp/range/@start"),
                 xpath_get(doc, "/network/ip/dhcp/range/@end"));
     }
 
@@ -132,14 +132,32 @@ void show_ninfo(virConnectPtr conn, const char *name)
     if (net != NULL) {
         int state = virNetworkIsActive(net);
         if (state) {
-            mvwprintw(MAIN_WIN, 7, 1, "State: Active");
+            mvwprintw(MAIN_WIN, 7, 2, "State: Active");
         } else {
-            mvwprintw(MAIN_WIN, 7, 1, "State: Inactive");
+            mvwprintw(MAIN_WIN, 7, 2, "State: Inactive");
         }
     }
 
     return;
 }
+
+void set_title(void)
+{
+    char *title;
+    switch (SELECTED) {
+        case DOMS:
+            title = " Domain ";
+            break;
+        case NETS:
+            title = " Network ";
+            break;
+        default:
+            break;
+    }
+
+    mvwaddstr(MAIN_WIN, 0, (WIDTH - SIDEBAR_W)/2 - strlen(title)/2, title);
+}
+
 int main(int argc, char **argv)
 {
     virConnectPtr conn;
@@ -166,9 +184,10 @@ int main(int argc, char **argv)
     char *title = "cobia v0.0.0";
     mvwaddstr(WIN, HEIGHT - 1, WIDTH - (int)strlen(title) - 1, title);
 
-    init_pair(2, 15, 8);
+    init_pair(2, 7, 8);
     MAIN_WIN = newwin(HEIGHT - TOPBAR_H, WIDTH - SIDEBAR_W, 0, SIDEBAR_W);
     nodelay(MAIN_WIN, 1);
+    box(MAIN_WIN, 0, 0);
     wbkgd(MAIN_WIN, COLOR_PAIR(2));
 
     init_pair(3, 15, 0);
@@ -188,6 +207,7 @@ int main(int argc, char **argv)
     wattroff(SIDE_WIN, A_BOLD);
     net_list(conn);
 
+    set_title();
     wrefresh(WIN);
     wrefresh(MAIN_WIN);
     wrefresh(SIDE_WIN);
@@ -227,6 +247,9 @@ int main(int argc, char **argv)
         if (ch == 10) CHOICE = HIGHLIGHT+1;
         if (ch == 10 && CHOICE == HIGHLIGHT+1) {
             wclear(MAIN_WIN);
+            box(MAIN_WIN, 0, 0);
+            set_title();
+
             if (SELECTED == DOMS) {
                 virDomainPtr *doms = get_all_domains(conn);
                 if (doms == NULL) return 1;
