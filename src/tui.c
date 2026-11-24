@@ -187,7 +187,8 @@ int main(int argc, char **argv)
     init_pair(2, 7, 8);
     MAIN_WIN = newwin(HEIGHT - TOPBAR_H, WIDTH - SIDEBAR_W, 0, SIDEBAR_W);
     nodelay(MAIN_WIN, 1);
-    box(MAIN_WIN, 0, 0);
+    mvwhline(MAIN_WIN, 0, 1, ACS_HLINE, WIDTH - SIDEBAR_W - 2);
+    mvwhline(MAIN_WIN, HEIGHT - TOPBAR_H - 1, 1, ACS_HLINE, WIDTH - SIDEBAR_W - 2);
     wbkgd(MAIN_WIN, COLOR_PAIR(2));
 
     init_pair(3, 15, 0);
@@ -247,7 +248,8 @@ int main(int argc, char **argv)
         if (ch == 10) CHOICE = HIGHLIGHT+1;
         if (ch == 10 && CHOICE == HIGHLIGHT+1) {
             wclear(MAIN_WIN);
-            box(MAIN_WIN, 0, 0);
+            mvwhline(MAIN_WIN, 0, 1, ACS_HLINE, WIDTH - SIDEBAR_W - 2);
+            mvwhline(MAIN_WIN, HEIGHT - TOPBAR_H - 1, 1, ACS_HLINE, WIDTH - SIDEBAR_W - 2);
             set_title();
 
             if (SELECTED == DOMS) {
